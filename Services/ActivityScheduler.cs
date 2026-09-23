@@ -17,6 +17,7 @@ public sealed class ActivityScheduler
     public GameProfile CurrentGameProfile { get; private set; } = new(true, 1, "side", false, true);
 
     public event Action<AppContextInfo, GameProfile>? ContextChanged;
+    public event Action<string>? ActivityChanged;
 
     public ActivityScheduler(RukaState state, Action<string> say)
     {
@@ -47,8 +48,7 @@ public sealed class ActivityScheduler
 
         if (now.Hour >= 0 && now.Hour < 7)
         {
-            _state.IsSleeping = true;
-            _state.Activity = "sleep";
+            SetActivity("sleep");
             return;
         }
 
@@ -60,6 +60,16 @@ public sealed class ActivityScheduler
             ? new[] { "watching_game", "idle" }
             : new[] { "idle", "look_around", "stretch", "walk" };
 
-        _state.Activity = activities[_random.Next(activities.Length)];
+        SetActivity(activities[_random.Next(activities.Length)]);
+    }
+
+    private void SetActivity(string activity)
+    {
+        if (string.Equals(_state.Activity, activity, StringComparison.OrdinalIgnoreCase))
+            return;
+
+        _state.Activity = activity;
+        _state.IsSleeping = activity == "sleep";
+        ActivityChanged?.Invoke(activity);
     }
 }
