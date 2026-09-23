@@ -15,10 +15,10 @@ public sealed class NotificationService
         // and route this to native Windows notifications without coupling core logic to UI.
         Requested?.Invoke(title, message);
 
-        if (Application.Current?.Dispatcher is null) return;
-        Application.Current.Dispatcher.Invoke(() =>
+        if (System.Windows.Application.Current?.Dispatcher is null) return;
+        System.Windows.Application.Current.Dispatcher.Invoke(() =>
         {
-            if (Application.Current.Windows.OfType<Window>().Any(w => w.IsActive))
+            if (System.Windows.Application.Current.Windows.OfType<Window>().Any(w => w.IsActive))
                 return;
             MessageBox.Show(message, title, MessageBoxButton.OK, MessageBoxImage.Information);
         });
