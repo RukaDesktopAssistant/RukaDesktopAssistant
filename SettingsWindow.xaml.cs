@@ -8,7 +8,7 @@ public partial class SettingsWindow : Window
     private readonly PermissionManager _permissions = new();
     private readonly SettingsStore _settings = new();
     private readonly AppearanceSettings _appearance = new();
-    private readonly AudioSettings _audio = new();
+    private readonly AudioSettingsStore _audioStore = new();
     private readonly WakeWordService _wake = new();
 
     public SettingsWindow()
@@ -18,6 +18,7 @@ public partial class SettingsWindow : Window
         _settings.Load();
         _permissions.Load();
         _appearance.Load();
+        _audioStore.Load();
 
         Navigation.SelectedIndex = 0;
         LoadControls();
@@ -36,11 +37,11 @@ public partial class SettingsWindow : Window
         UpdateAppearanceLabels();
 
         VoiceInputEnabled.IsChecked = _settings.VoiceInputEnabled;
-        WakeEnabled.IsChecked = _wake.Enabled;
-        WakePhrase.Text = _settings.WakePhrase;
-        TtsEnabled.IsChecked = _audio.TtsEnabled;
-        VoiceRate.Value = _settings.VoiceRate;
-        VoiceVolume.Value = _settings.VoiceVolume;
+        WakeEnabled.IsChecked = _audioStore.Current.WakeWordEnabled;
+        WakePhrase.Text = _audioStore.Current.WakePhrase;
+        TtsEnabled.IsChecked = _audioStore.Current.TtsEnabled;
+        VoiceRate.Value = _audioStore.Current.TtsRate;
+        VoiceVolume.Value = _audioStore.Current.TtsVolume;
 
         AllowScreenRead.IsChecked = _permissions.AllowScreenRead;
         AllowLaunchApps.IsChecked = _permissions.AllowLaunchApps;
@@ -68,10 +69,14 @@ public partial class SettingsWindow : Window
         _settings.DiscordWakeWordOnly = DiscordWakeWordOnly.IsChecked == true;
         _settings.AutonomousBehaviorEnabled = AutonomousBehavior.IsChecked == true;
         _settings.VoiceInputEnabled = VoiceInputEnabled.IsChecked == true;
-        _settings.WakePhrase = string.IsNullOrWhiteSpace(WakePhrase.Text) ? "ねぇ、るか" : WakePhrase.Text.Trim();
-        _settings.VoiceRate = VoiceRate.Value;
-        _settings.VoiceVolume = VoiceVolume.Value;
         _settings.Save();
+
+        _audioStore.Current.WakeWordEnabled = WakeEnabled.IsChecked == true;
+        _audioStore.Current.WakePhrase = string.IsNullOrWhiteSpace(WakePhrase.Text) ? "ねぇ、るか" : WakePhrase.Text.Trim();
+        _audioStore.Current.TtsEnabled = TtsEnabled.IsChecked == true;
+        _audioStore.Current.TtsRate = (int)Math.Round(VoiceRate.Value);
+        _audioStore.Current.TtsVolume = (int)Math.Round(VoiceVolume.Value);
+        _audioStore.Save();
 
         _permissions.RequireConfirmationForDangerousActions = DangerousConfirmation.IsChecked == true;
         _permissions.AllowScreenRead = AllowScreenRead.IsChecked == true;
@@ -87,10 +92,8 @@ public partial class SettingsWindow : Window
         _appearance.Opacity = OpacitySlider.Value;
         _appearance.Save();
 
-        _wake.WakePhrase = _settings.WakePhrase;
-        _wake.Enabled = WakeEnabled.IsChecked == true;
-
-        MessageBox.Show("設定を保存したよ。", "るか", MessageBoxButton.OK, MessageBoxImage.Information);
+        MessageBox.Show("設定を保存したよ。再起動すると、るか本体にもすべて反映されるよ。", "るか",
+            MessageBoxButton.OK, MessageBoxImage.Information);
     }
 
     private void Navigation_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
