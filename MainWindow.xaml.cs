@@ -25,7 +25,6 @@ public partial class MainWindow : Window
     private CharacterAnimationService? _animation;
     private Point _dragStart;
     private bool _dragging;
-    private bool _suppressContextVisibility;
     private ChatWindow? _chatWindow;
 
     public MainWindow()
@@ -45,6 +44,7 @@ public partial class MainWindow : Window
         _character = new CharacterController(this);
         _activityScheduler = new ActivityScheduler(_state, Say);
         _activityScheduler.ContextChanged += OnContextChanged;
+        _activityScheduler.ActivityChanged += OnActivityChanged;
         _shortcuts = new ShortcutService(this);
         _voiceInput = new VoiceInputService(_wakeWord);
 
@@ -59,7 +59,12 @@ public partial class MainWindow : Window
             ((Storyboard)FindResource("IdleFloat")).Begin(this, true);
             _shortcuts.Start();
             ApplyStartupSetting();
-            if (_settings.VoiceInputEnabled) StartVoice();
+
+            if (_settings.AutonomousBehaviorEnabled)
+                _activityScheduler.Start();
+
+            if (_settings.VoiceInputEnabled)
+                StartVoice();
         };
 
         Closed += (_, _) =>
@@ -73,13 +78,13 @@ public partial class MainWindow : Window
         _shortcuts.Pause += TogglePause;
         _shortcuts.OpenChat += OpenChat;
         _shortcuts.EmergencyStop += EmergencyStop;
-        _activityScheduler.Start();
     }
 
     private void ApplyAppearance()
     {
         Topmost = _appearance.AlwaysOnTop;
         Opacity = _appearance.Opacity;
+
         var scale = Math.Clamp(_appearance.Scale, 0.5, 2.0);
         CharacterVisual.RenderTransformOrigin = new Point(0.5, 0.5);
         if (CharacterVisual.RenderTransform is System.Windows.Media.ScaleTransform st)
@@ -87,7 +92,8 @@ public partial class MainWindow : Window
             st.ScaleX = scale;
             st.ScaleY = scale;
         }
-        Bubble.Visibility = _appearance.ShowSpeechBubble ? Visibility.Collapsed : Visibility.Collapsed;
+
+        Bubble.Visibility = Visibility.Collapsed;
     }
 
     private void LoadCharacterAsset()
@@ -108,6 +114,17 @@ public partial class MainWindow : Window
         CharacterFallback.Visibility = Visibility.Collapsed;
     }
 
+    private void OnActivityChanged(string activity)
+    {
+        if (!Dispatcher.CheckAccess())
+        {
+            Dispatcher.BeginInvoke(() => OnActivityChanged(activity));
+            return;
+        }
+
+        _animation?.SetState(activity);
+    }
+
     private void OnContextChanged(AppContextInfo context, GameProfile profile)
     {
         if (!Dispatcher.CheckAccess())
@@ -119,13 +136,10 @@ public partial class MainWindow : Window
         var inGame = context.IsKnownGame;
         var show = !inGame || (_settings.ShowDuringGames && profile.ShowCharacter);
 
-        _suppressContextVisibility = !show;
         Character.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
 
         if (show && inGame && profile.MoveToSide)
-        {
             MoveToSide();
-        }
 
         var scale = inGame ? profile.Scale : _appearance.Scale;
         if (CharacterVisual.RenderTransform is System.Windows.Media.ScaleTransform st)
@@ -137,7 +151,9 @@ public partial class MainWindow : Window
 
     private void MoveToSide()
     {
-        var area = Forms.Screen.FromHandle(new System.Windows.Interop.WindowInteropHelper(this).Handle).WorkingArea;
+        var area = Forms.Screen.FromHandle(
+            new System.Windows.Interop.WindowInteropHelper(this).Handle).WorkingArea;
+
         Left = area.Right - Width - 24;
         Top = area.Bottom - Height - 24;
     }
@@ -161,8 +177,10 @@ public partial class MainWindow : Window
         try
         {
             var startup = new StartupService();
-            startup.SetEnabled(_settings.StartWithWindows,
-                Environment.ProcessPath ?? System.Reflection.Assembly.GetExecutingAssembly().Location);
+            startup.SetEnabled(
+                _settings.StartWithWindows,
+                Environment.ProcessPath ??
+                System.Reflection.Assembly.GetExecutingAssembly().Location);
         }
         catch { }
     }
@@ -174,8 +192,14 @@ public partial class MainWindow : Window
 
         var parts = _appearance.Position.Split(',', StringSplitOptions.TrimEntries);
         if (parts.Length == 2
-            && double.TryParse(parts[0], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var savedLeft)
-            && double.TryParse(parts[1], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var savedTop))
+            && double.TryParse(parts[0],
+                System.Globalization.NumberStyles.Float,
+                System.Globalization.CultureInfo.InvariantCulture,
+                out var savedLeft)
+            && double.TryParse(parts[1],
+                System.Globalization.NumberStyles.Float,
+                System.Globalization.CultureInfo.InvariantCulture,
+                out var savedTop))
         {
             Left = Math.Clamp(savedLeft, area.Value.Left, area.Value.Right - Width);
             Top = Math.Clamp(savedTop, area.Value.Top, area.Value.Bottom - Height);
@@ -188,8 +212,9 @@ public partial class MainWindow : Window
 
     private void SavePosition()
     {
-        if (_appearance is null) return;
-        _appearance.Position = $"{Left:0},{Top:0}";
+        _appearance.Position =
+            $"{Left.ToString("0", System.Globalization.CultureInfo.InvariantCulture)}," +
+            $"{Top.ToString("0", System.Globalization.CultureInfo.InvariantCulture)}";
         _appearance.Save();
     }
 
@@ -205,6 +230,7 @@ public partial class MainWindow : Window
     private void DragMove(object? sender, MouseEventArgs e)
     {
         if (!_dragging || e.LeftButton != MouseButtonState.Pressed) return;
+
         var p = e.GetPosition(null);
         Left = p.X - _dragStart.X;
         Top = p.Y - _dragStart.Y;
@@ -229,7 +255,9 @@ public partial class MainWindow : Window
         menu.Items.Add(MenuItem("音声入力を停止", (_, _) => _voiceInput.StopConversation()));
         menu.Items.Add(MenuItem("少し歩く", (_, _) => _character.Wander()));
         menu.Items.Add(new Separator());
-        menu.Items.Add(MenuItem(_state.IsPaused ? "るかを再開" : "るかを待機", (_, _) => TogglePause()));
+        menu.Items.Add(MenuItem(
+            _state.IsPaused ? "るかを再開" : "るかを待機",
+            (_, _) => TogglePause()));
         menu.Items.Add(MenuItem("緊急停止", (_, _) => EmergencyStop()));
         menu.Items.Add(new Separator());
         menu.Items.Add(MenuItem("終了", (_, _) => Application.Current.Shutdown()));
@@ -255,9 +283,16 @@ public partial class MainWindow : Window
         providerSettings.Load();
 
         if (providerSettings.Provider.Equals("http", StringComparison.OrdinalIgnoreCase)
-            && Uri.TryCreate(providerSettings.Endpoint, UriKind.Absolute, out var endpoint))
+            && Uri.TryCreate(
+                providerSettings.Endpoint,
+                UriKind.Absolute,
+                out var endpoint))
         {
-            return new HttpAiProvider(new HttpClient(), endpoint.ToString());
+            return new HttpAiProvider(
+                new HttpClient(),
+                endpoint.ToString(),
+                providerSettings.HistoryCount,
+                providerSettings.SendRecentHistory);
         }
 
         return new LocalAiProvider();
@@ -271,7 +306,10 @@ public partial class MainWindow : Window
             return _chatWindow;
         }
 
-        _chatWindow = new ChatWindow(_conversationStore, CreateAiProvider());
+        _chatWindow = new ChatWindow(
+            _conversationStore,
+            CreateAiProvider());
+
         _chatWindow.Closed += (_, _) => _chatWindow = null;
         _chatWindow.Show();
         return _chatWindow;
@@ -280,6 +318,7 @@ public partial class MainWindow : Window
     private void TogglePause()
     {
         _state.IsPaused = !_state.IsPaused;
+
         if (_state.IsPaused)
         {
             _activityScheduler.Stop();
@@ -287,7 +326,11 @@ public partial class MainWindow : Window
         }
         else
         {
-            _activityScheduler.Start();
+            if (_settings.AutonomousBehaviorEnabled)
+                _activityScheduler.Start();
+
+            if (_settings.VoiceInputEnabled)
+                StartVoice();
         }
 
         Speak(_state.IsPaused ? "ちょっと待機するね。" : "戻ったよ！");
