@@ -12,6 +12,9 @@ public partial class MainWindow : Window
     private readonly RukaState _state = new();
     private readonly ConversationStore _conversationStore = new();
     private readonly VoiceService _voice = new();
+    private readonly SettingsStore _settings = new();
+    private readonly WakeWordService _wakeWord = new();
+    private readonly VoiceInputService _voiceInput;
     private readonly ActivityScheduler _activityScheduler;
     private readonly CharacterController _character;
     private readonly ShortcutService _shortcuts;
@@ -21,9 +24,16 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+
+        _settings.Load();
+        _wakeWord.WakePhrase = _settings.WakePhrase;
         _character = new CharacterController(this);
         _activityScheduler = new ActivityScheduler(_state, Say);
         _shortcuts = new ShortcutService(this);
+        _voiceInput = new VoiceInputService(_wakeWord);
+
+        _voiceInput.Recognized += OnVoiceRecognized;
+        _voiceInput.Error += ex => Say($"音声入力を開始できなかったよ。{ex.Message}");
 
         Loaded += (_, _) =>
         {
@@ -31,11 +41,13 @@ public partial class MainWindow : Window
             ((Storyboard)FindResource("IdleFloat")).Begin(this, true);
             _shortcuts.Start();
             ApplyStartupSetting();
+            if (_settings.VoiceInputEnabled) _voiceInput.Start();
         };
 
         Closed += (_, _) =>
         {
             _shortcuts.Dispose();
+            _voiceInput.Dispose();
             _voice.Dispose();
         };
 
@@ -45,16 +57,27 @@ public partial class MainWindow : Window
         _activityScheduler.Start();
     }
 
+    private void OnVoiceRecognized(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            Say("ん？どうした？");
+            return;
+        }
+
+        Say(text);
+        OpenChat();
+    }
+
     private void ApplyStartupSetting()
     {
-        var settings = new SettingsStore();
-        settings.Load();
-        if (!settings.StartWithWindows) return;
+        if (!_settings.StartWithWindows) return;
 
         try
         {
             var startup = new StartupService();
-            startup.SetEnabled(true, Environment.ProcessPath ?? System.Reflection.Assembly.GetExecutingAssembly().Location);
+            startup.SetEnabled(true, Environment.ProcessPath ??
+                System.Reflection.Assembly.GetExecutingAssembly().Location);
         }
         catch { }
     }
@@ -98,6 +121,8 @@ public partial class MainWindow : Window
         menu.Items.Add(MenuItem("チャットを開く", (_, _) => OpenChat()));
         menu.Items.Add(MenuItem("設定", (_, _) => new SettingsWindow().Show()));
         menu.Items.Add(MenuItem("声で話す", (_, _) => Speak("ん？どうした？")));
+        menu.Items.Add(MenuItem("音声入力を開始", (_, _) => StartVoice()));
+        menu.Items.Add(MenuItem("音声入力を停止", (_, _) => _voiceInput.StopConversation()));
         menu.Items.Add(MenuItem("少し歩く", (_, _) => _character.Wander()));
         menu.Items.Add(new Separator());
         menu.Items.Add(MenuItem(_state.IsPaused ? "るかを再開" : "るかを待機", (_, _) => TogglePause()));
@@ -114,6 +139,12 @@ public partial class MainWindow : Window
         return item;
     }
 
+    private void StartVoice()
+    {
+        if (_voiceInput.Start())
+            Say("聞いてるよ。『ねぇ、るか』って呼んでね。");
+    }
+
     private void OpenChat() => new ChatWindow(_conversationStore).Show();
 
     private void TogglePause()
@@ -127,6 +158,7 @@ public partial class MainWindow : Window
     {
         _state.IsPaused = true;
         _activityScheduler.Stop();
+        _voiceInput.StopConversation();
         _voice.Stop();
         Say("緊急停止したよ。");
     }
