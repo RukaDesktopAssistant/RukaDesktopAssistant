@@ -1,19 +1,26 @@
 using System.Windows;
 using System.Windows.Controls;
 using RukaDesktopAssistant.Services;
+using RukaDesktopAssistant.Services.AI;
 
 namespace RukaDesktopAssistant;
 
 public partial class ChatWindow : Window
 {
     private readonly ConversationStore _store;
+    private readonly AiConversationService _ai;
+    private readonly SemaphoreSlim _replyLock = new(1, 1);
 
-    public ChatWindow() : this(new ConversationStore()) { }
+    public ChatWindow() : this(new ConversationStore(), new LocalAiProvider()) { }
 
     public ChatWindow(ConversationStore store)
+        : this(store, new LocalAiProvider()) { }
+
+    public ChatWindow(ConversationStore store, IAiProvider provider)
     {
         InitializeComponent();
         _store = store;
+        _ai = new AiConversationService(provider);
         Loaded += (_, _) => LoadHistory();
         Input.Focus();
     }
@@ -24,25 +31,38 @@ public partial class ChatWindow : Window
             AddMessage(message.Role == "user" ? "あなた" : "るか", message.Text);
     }
 
-    private void Send_Click(object sender, RoutedEventArgs e)
+    private async void Send_Click(object sender, RoutedEventArgs e)
     {
-        var text = Input.Text.Trim();
-        if (text.Length == 0) return;
-        _store.Add("user", text);
-        AddMessage("あなた", text);
-        Input.Clear();
+        if (!await _replyLock.WaitAsync(0)) return;
 
-        var reply = CreateLocalReply(text);
-        _store.Add("assistant", reply);
-        AddMessage("るか", reply);
-    }
+        try
+        {
+            var text = Input.Text.Trim();
+            if (text.Length == 0) return;
 
-    private static string CreateLocalReply(string text)
-    {
-        if (text.Contains("ねぇ、るか") || text.Contains("るか")) return "ん？どうした？";
-        if (text.Contains("こんにちは")) return "こんにちは！今日もよろしくね。";
-        if (text.Contains("ありがとう")) return "どういたしまして！";
-        return "受け取ったよ。AI接続を追加すると、ここで本格的に会話できるようになるよ。";
+            _store.Add("user", text);
+            AddMessage("あなた", text);
+            Input.Clear();
+
+            var history = _store.Messages
+                .TakeLast(20)
+                .Select(m => $"{m.Role}: {m.Text}")
+                .ToArray();
+
+            var reply = await _ai.ReplyAsync(text, history);
+            _store.Add("assistant", reply);
+            AddMessage("るか", reply);
+        }
+        catch (Exception ex)
+        {
+            var reply = $"ごめん、返答中にエラーが起きたよ。{ex.Message}";
+            _store.Add("assistant", reply);
+            AddMessage("るか", reply);
+        }
+        finally
+        {
+            _replyLock.Release();
+        }
     }
 
     private void AddMessage(string speaker, string text)
