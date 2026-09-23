@@ -10,10 +10,13 @@ public sealed class ActivityScheduler
     private readonly Action<string> _say;
     private readonly Random _random = new();
     private readonly GameProfileStore _gameProfiles = new();
-    private DateTime _lastActivityChange = DateTime.Now;
+    private DateTime _lastActivityChange = DateTime.MinValue;
 
     public bool IsGameSuppressed { get; private set; }
     public string? CurrentProcessName { get; private set; }
+    public GameProfile CurrentGameProfile { get; private set; } = new(true, 1, "side", false, true);
+
+    public event Action<AppContextInfo, GameProfile>? ContextChanged;
 
     public ActivityScheduler(RukaState state, Action<string> say)
     {
@@ -33,12 +36,15 @@ public sealed class ActivityScheduler
         CurrentProcessName = context.ProcessName;
 
         var profile = context.ProcessName is null
-            ? new GameProfile(true, 1, "side", false)
+            ? new GameProfile(true, 1, "side", false, true)
             : _gameProfiles.Get(context.ProcessName);
 
+        CurrentGameProfile = profile;
         IsGameSuppressed = context.IsKnownGame && !profile.ShowCharacter;
+        ContextChanged?.Invoke(context, profile);
 
         var now = DateTime.Now;
+
         if (now.Hour >= 0 && now.Hour < 7)
         {
             _state.IsSleeping = true;
