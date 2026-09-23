@@ -9,6 +9,7 @@ public partial class SettingsWindow : Window
     private readonly SettingsStore _settings = new();
     private readonly AppearanceSettings _appearance = new();
     private readonly AudioSettingsStore _audioStore = new();
+    private readonly ProviderSettings _providerSettings = new();
     private readonly WakeWordService _wake = new();
 
     public SettingsWindow()
@@ -19,6 +20,7 @@ public partial class SettingsWindow : Window
         _permissions.Load();
         _appearance.Load();
         _audioStore.Load();
+        _providerSettings.Load();
 
         Navigation.SelectedIndex = 0;
         LoadControls();
@@ -42,6 +44,14 @@ public partial class SettingsWindow : Window
         TtsEnabled.IsChecked = _audioStore.Current.TtsEnabled;
         VoiceRate.Value = _audioStore.Current.TtsRate;
         VoiceVolume.Value = _audioStore.Current.TtsVolume;
+
+        AiProvider.SelectedItem = AiProvider.Items
+            .OfType<System.Windows.Controls.ComboBoxItem>()
+            .FirstOrDefault(x => string.Equals(x.Content?.ToString(), _providerSettings.Provider, StringComparison.OrdinalIgnoreCase))
+            ?? AiProvider.Items[0];
+        AiEndpoint.Text = _providerSettings.Endpoint;
+        SendHistory.IsChecked = _providerSettings.SendRecentHistory;
+        HistoryCount.Value = _providerSettings.HistoryCount;
 
         AllowScreenRead.IsChecked = _permissions.AllowScreenRead;
         AllowLaunchApps.IsChecked = _permissions.AllowLaunchApps;
@@ -77,6 +87,12 @@ public partial class SettingsWindow : Window
         _audioStore.Current.TtsRate = (int)Math.Round(VoiceRate.Value);
         _audioStore.Current.TtsVolume = (int)Math.Round(VoiceVolume.Value);
         _audioStore.Save();
+
+        _providerSettings.Provider = (AiProvider.SelectedItem as System.Windows.Controls.ComboBoxItem)?.Content?.ToString() ?? "local";
+        _providerSettings.Endpoint = AiEndpoint.Text.Trim();
+        _providerSettings.SendRecentHistory = SendHistory.IsChecked == true;
+        _providerSettings.HistoryCount = (int)Math.Round(HistoryCount.Value);
+        _providerSettings.Save();
 
         _permissions.RequireConfirmationForDangerousActions = DangerousConfirmation.IsChecked == true;
         _permissions.AllowScreenRead = AllowScreenRead.IsChecked == true;
