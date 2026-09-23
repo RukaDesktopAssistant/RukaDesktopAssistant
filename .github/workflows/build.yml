@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -34,20 +34,34 @@ jobs:
         shell: pwsh
         run: Copy-Item publish\RukaDesktopAssistant.exe RukaDesktopAssistant.exe -Force
 
-      - name: Upload EXE
+      - name: Upload EXE artifact
         uses: actions/upload-artifact@v4
         with:
           name: RukaDesktopAssistant-EXE
           path: RukaDesktopAssistant.exe
           retention-days: 90
 
-      - name: Upload portable package
+      - name: Create portable ZIP
         shell: pwsh
         run: Compress-Archive -Path publish\* -DestinationPath RukaDesktopAssistant-win-x64.zip -Force
 
-      - name: Upload portable ZIP
+      - name: Upload portable ZIP artifact
         uses: actions/upload-artifact@v4
         with:
           name: RukaDesktopAssistant-win-x64
           path: RukaDesktopAssistant-win-x64.zip
           retention-days: 90
+
+      - name: Publish latest GitHub Release
+        if: github.event_name != 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: pwsh
+        run: |
+          $tag = "v0.1.0"
+          gh release view $tag --repo $env:GITHUB_REPOSITORY 2>$null
+          if ($LASTEXITCODE -ne 0) {
+            gh release create $tag RukaDesktopAssistant.exe RukaDesktopAssistant-win-x64.zip --repo $env:GITHUB_REPOSITORY --title "Ruka Desktop Assistant v0.1.0" --notes "Windows版Ruka Desktop Assistant。EXEまたはZIPをダウンロードして使えます。"
+          } else {
+            gh release upload $tag RukaDesktopAssistant.exe RukaDesktopAssistant-win-x64.zip --repo $env:GITHUB_REPOSITORY --clobber
+          }
