@@ -10,15 +10,19 @@ public partial class MainWindow : Window
 {
     private readonly RukaState _state = new();
     private readonly ConversationStore _conversationStore = new();
+    private readonly VoiceService _voice = new();
     private readonly ActivityScheduler _activityScheduler;
+    private readonly CharacterController _character;
     private Point _dragStart;
     private bool _dragging;
 
     public MainWindow()
     {
         InitializeComponent();
+        _character = new CharacterController(this);
         _activityScheduler = new ActivityScheduler(_state, Say);
         Loaded += (_, _) => RestorePosition();
+        Closed += (_, _) => _voice.Dispose();
         _activityScheduler.Start();
     }
 
@@ -60,6 +64,8 @@ public partial class MainWindow : Window
         var menu = new ContextMenu();
         menu.Items.Add(MenuItem("チャットを開く", (_, _) => OpenChat()));
         menu.Items.Add(MenuItem("設定", (_, _) => new SettingsWindow().Show()));
+        menu.Items.Add(MenuItem("声で話す", (_, _) => Speak("ん？どうした？")));
+        menu.Items.Add(MenuItem("少し歩く", (_, _) => _character.Wander()));
         menu.Items.Add(new Separator());
         menu.Items.Add(MenuItem(_state.IsPaused ? "るかを再開" : "るかを待機", (_, _) => TogglePause()));
         menu.Items.Add(MenuItem("緊急停止", (_, _) => EmergencyStop()));
@@ -95,5 +101,6 @@ public partial class MainWindow : Window
     {
         BubbleText.Text = text;
         Bubble.Visibility = Visibility.Visible;
+        _voice.Speak(text);
     }
 }
