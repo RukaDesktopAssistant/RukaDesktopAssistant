@@ -134,7 +134,9 @@ public partial class MainWindow : Window
         }
 
         var inGame = context.IsKnownGame;
-        var show = !inGame || (_settings.ShowDuringGames && profile.ShowCharacter);
+        var show = !inGame || profile.ShowCharacter;
+        if (inGame && !_settings.ShowDuringGames)
+            show = false;
 
         Character.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
 
@@ -220,6 +222,13 @@ public partial class MainWindow : Window
 
     private void Character_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
+        if (e.ClickCount >= 2)
+        {
+            OpenChat();
+            e.Handled = true;
+            return;
+        }
+
         _dragStart = e.GetPosition(this);
         _dragging = true;
         CaptureMouse();
@@ -342,7 +351,8 @@ public partial class MainWindow : Window
         _activityScheduler.Stop();
         _voiceInput.StopConversation();
         _voice.Stop();
-        Speak("緊急停止したよ。");
+        _animation?.SetState("idle");
+        Bubble.Visibility = Visibility.Collapsed;
     }
 
     private void Speak(string text)
