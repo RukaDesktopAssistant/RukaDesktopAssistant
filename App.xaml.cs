@@ -1,7 +1,27 @@
+using System.Threading;
 using System.Windows;
 
 namespace RukaDesktopAssistant;
 
 public partial class App : Application
 {
+    private static Mutex? _singleInstance;
+
+    protected override void OnStartup(StartupEventArgs e)
+    {
+        _singleInstance = new Mutex(true, "RukaDesktopAssistant.SingleInstance", out var created);
+        if (!created)
+        {
+            Shutdown();
+            return;
+        }
+
+        base.OnStartup(e);
+    }
+
+    protected override void OnExit(ExitEventArgs e)
+    {
+        _singleInstance?.Dispose();
+        base.OnExit(e);
+    }
 }
