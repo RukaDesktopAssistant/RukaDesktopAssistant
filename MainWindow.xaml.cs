@@ -86,7 +86,7 @@ public partial class MainWindow : Window
         Opacity = _appearance.Opacity;
 
         var scale = Math.Clamp(_appearance.Scale, 0.5, 2.0);
-        CharacterVisual.RenderTransformOrigin = new Point(0.5, 0.5);
+        CharacterVisual.RenderTransformOrigin = new System.Windows.Point(0.5, 0.5);
         if (CharacterVisual.RenderTransform is System.Windows.Media.ScaleTransform st)
         {
             st.ScaleX = scale;
