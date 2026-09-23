@@ -18,8 +18,10 @@ public partial class MainWindow : Window
     private readonly ActivityScheduler _activityScheduler;
     private readonly CharacterController _character;
     private readonly ShortcutService _shortcuts;
+    private readonly CharacterAssetService _assets = new();
     private Point _dragStart;
     private bool _dragging;
+    private ChatWindow? _chatWindow;
 
     public MainWindow()
     {
@@ -42,6 +44,7 @@ public partial class MainWindow : Window
         Loaded += (_, _) =>
         {
             RestorePosition();
+            LoadCharacterAsset();
             ((Storyboard)FindResource("IdleFloat")).Begin(this, true);
             _shortcuts.Start();
             ApplyStartupSetting();
@@ -61,6 +64,21 @@ public partial class MainWindow : Window
         _activityScheduler.Start();
     }
 
+    private void LoadCharacterAsset()
+    {
+        var image = _assets.TryLoad("ruka-idle.png");
+        if (image is null)
+        {
+            CharacterImage.Visibility = Visibility.Collapsed;
+            CharacterFallback.Visibility = Visibility.Visible;
+            return;
+        }
+
+        CharacterImage.Source = image;
+        CharacterImage.Visibility = Visibility.Visible;
+        CharacterFallback.Visibility = Visibility.Collapsed;
+    }
+
     private void OnVoiceRecognized(string text)
     {
         if (string.IsNullOrWhiteSpace(text))
@@ -69,8 +87,8 @@ public partial class MainWindow : Window
             return;
         }
 
-        OpenChat();
-        Say(text);
+        var chat = OpenChat();
+        chat.SubmitVoiceText(text);
     }
 
     private void ApplyStartupSetting()
@@ -147,7 +165,19 @@ public partial class MainWindow : Window
             Say("聞いてるよ。『ねぇ、るか』って呼んでね。");
     }
 
-    private void OpenChat() => new ChatWindow(_conversationStore).Show();
+    private ChatWindow OpenChat()
+    {
+        if (_chatWindow is { IsVisible: true })
+        {
+            _chatWindow.Activate();
+            return _chatWindow;
+        }
+
+        _chatWindow = new ChatWindow(_conversationStore);
+        _chatWindow.Closed += (_, _) => _chatWindow = null;
+        _chatWindow.Show();
+        return _chatWindow;
+    }
 
     private void TogglePause()
     {
@@ -174,12 +204,13 @@ public partial class MainWindow : Window
         Say("緊急停止したよ。");
     }
 
-    private void Speak(string text) => Say(text);
-
-    public void Say(string text)
+    private void Speak(string text)
     {
         BubbleText.Text = text;
         Bubble.Visibility = Visibility.Visible;
         _voice.Speak(text);
+        ((Storyboard)FindResource("TalkPulse")).Begin(this, true);
     }
+
+    public void Say(string text) => Speak(text);
 }
