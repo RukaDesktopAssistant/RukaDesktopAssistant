@@ -144,13 +144,16 @@ public partial class MainWindow : Window
 
     private void OnVoiceRecognized(string text)
     {
-        if (string.IsNullOrWhiteSpace(text))
+        Dispatcher.BeginInvoke(() =>
         {
-            Speak("ん？どうした？");
-            return;
-        }
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                Speak("ん？どうした？");
+                return;
+            }
 
-        OpenChat().SubmitVoiceText(text);
+            OpenChat().SubmitVoiceText(text);
+        });
     }
 
     private void ApplyStartupSetting()
