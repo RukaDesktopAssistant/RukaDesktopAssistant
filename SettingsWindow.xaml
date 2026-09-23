@@ -48,6 +48,20 @@
                         <Slider x:Name="VoiceVolume" Minimum="0" Maximum="100" TickFrequency="5" IsSnapToTickEnabled="True"/>
                     </StackPanel>
                 </GroupBox>
+                <GroupBox Header="AI接続" Margin="0,0,0,18">
+                    <StackPanel Margin="12">
+                        <TextBlock Text="プロバイダー"/>
+                        <ComboBox x:Name="AiProvider" Margin="0,4,0,8">
+                            <ComboBoxItem Content="local"/>
+                            <ComboBoxItem Content="http"/>
+                        </ComboBox>
+                        <TextBlock Text="HTTPエンドポイント（http選択時）"/>
+                        <TextBox x:Name="AiEndpoint" Margin="0,4,0,8"/>
+                        <CheckBox x:Name="SendHistory" Content="直近の会話履歴を送信する" Margin="0,6"/>
+                        <TextBlock Text="送信する履歴件数"/>
+                        <Slider x:Name="HistoryCount" Minimum="1" Maximum="100" TickFrequency="1" IsSnapToTickEnabled="True"/>
+                    </StackPanel>
+                </GroupBox>
                 <GroupBox Header="権限" Margin="0,0,0,18">
                     <StackPanel Margin="12">
                         <CheckBox x:Name="AllowScreenRead" Content="画面・アプリ状態の読み取りを許可" Margin="0,6"/>
