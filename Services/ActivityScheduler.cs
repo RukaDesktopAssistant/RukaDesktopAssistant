@@ -5,11 +5,15 @@ namespace RukaDesktopAssistant.Services;
 
 public sealed class ActivityScheduler
 {
-    private readonly DispatcherTimer _timer = new() { Interval = TimeSpan.FromSeconds(30) };
+    private readonly DispatcherTimer _timer = new() { Interval = TimeSpan.FromSeconds(15) };
     private readonly RukaState _state;
     private readonly Action<string> _say;
     private readonly Random _random = new();
+    private readonly GameProfileStore _gameProfiles = new();
     private DateTime _lastActivityChange = DateTime.Now;
+
+    public bool IsGameSuppressed { get; private set; }
+    public string? CurrentProcessName { get; private set; }
 
     public ActivityScheduler(RukaState state, Action<string> say)
     {
@@ -24,12 +28,17 @@ public sealed class ActivityScheduler
     private void Tick()
     {
         if (_state.IsPaused) return;
-        var now = DateTime.Now;
-        var minutes = (now - _lastActivityChange).TotalMinutes;
-        if (minutes < 3) return;
-        _lastActivityChange = now;
 
-        // Small, non-intrusive autonomous behavior. AI/voice will be layered on later.
+        var context = AppContextService.GetForegroundContext();
+        CurrentProcessName = context.ProcessName;
+
+        var profile = context.ProcessName is null
+            ? new GameProfile(true, 1, "side", false)
+            : _gameProfiles.Get(context.ProcessName);
+
+        IsGameSuppressed = context.IsKnownGame && !profile.ShowCharacter;
+
+        var now = DateTime.Now;
         if (now.Hour >= 0 && now.Hour < 7)
         {
             _state.IsSleeping = true;
@@ -38,7 +47,13 @@ public sealed class ActivityScheduler
         }
 
         _state.IsSleeping = false;
-        var activities = new[] { "idle", "look_around", "stretch", "walk" };
+        if ((now - _lastActivityChange).TotalMinutes < 1) return;
+        _lastActivityChange = now;
+
+        var activities = IsGameSuppressed
+            ? new[] { "watching_game", "idle" }
+            : new[] { "idle", "look_around", "stretch", "walk" };
+
         _state.Activity = activities[_random.Next(activities.Length)];
     }
 }
