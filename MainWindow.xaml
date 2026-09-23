@@ -4,14 +4,23 @@
     WindowStyle="None" AllowsTransparency="True" Background="Transparent"
     ShowInTaskbar="False" Topmost="True" SizeToContent="WidthAndHeight"
     ResizeMode="NoResize">
-    <Grid Background="Transparent">
+    <Window.Resources>
+        <Storyboard x:Key="IdleFloat">
+            <DoubleAnimation Storyboard.TargetName="Character" Storyboard.TargetProperty="RenderTransform.(TranslateTransform.Y)"
+                             From="0" To="-5" Duration="0:0:1.4" AutoReverse="True" RepeatBehavior="Forever"/>
+        </Storyboard>
+    </Window.Resources>
+    <Grid Background="Transparent" Margin="8">
         <Border x:Name="Bubble" Background="#EE20242B" CornerRadius="14" Padding="12,8"
                 HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,0,0,70"
                 Visibility="Collapsed">
             <TextBlock x:Name="BubbleText" Foreground="White" TextWrapping="Wrap" MaxWidth="280"/>
         </Border>
-        <Border Width="180" Height="180" Background="#01FFFFFF" MouseLeftButtonDown="Character_MouseLeftButtonDown"
-                MouseRightButtonUp="Character_MouseRightButtonUp" ToolTip="Ruka">
+        <Border x:Name="Character" Width="180" Height="180" Background="#01FFFFFF"
+                MouseLeftButtonDown="Character_MouseLeftButtonDown"
+                MouseRightButtonUp="Character_MouseRightButtonUp" ToolTip="Ruka"
+                RenderTransformOrigin="0.5,0.5">
+            <Border.RenderTransform><TranslateTransform/></Border.RenderTransform>
             <TextBlock Text="るか" FontSize="52" FontWeight="Bold" Foreground="#FFB7D8"
                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
         </Border>
