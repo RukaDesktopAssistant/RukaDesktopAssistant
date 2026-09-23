@@ -76,7 +76,7 @@ public partial class MainWindow : Window
         };
 
         _shortcuts.Pause += TogglePause;
-        _shortcuts.OpenChat += OpenChat;
+        _shortcuts.OpenChat += () => OpenChat();
         _shortcuts.EmergencyStop += EmergencyStop;
     }
 
@@ -259,7 +259,7 @@ public partial class MainWindow : Window
             _state.IsPaused ? "るかを再開" : "るかを待機",
             (_, _) => TogglePause()));
         menu.Items.Add(MenuItem("緊急停止", (_, _) => EmergencyStop()));
-        menu.Items.Add(new Separator());
+        menu.Items.Add(new System.Windows.Controls.Separator());
         menu.Items.Add(MenuItem("終了", (_, _) => System.Windows.Application.Current.Shutdown()));
         menu.IsOpen = true;
     }
@@ -289,7 +289,7 @@ public partial class MainWindow : Window
                 out var endpoint))
         {
             return new HttpAiProvider(
-                new HttpClient(),
+                new System.Net.Http.HttpClient(),
                 endpoint.ToString(),
                 providerSettings.HistoryCount,
                 providerSettings.SendRecentHistory);
