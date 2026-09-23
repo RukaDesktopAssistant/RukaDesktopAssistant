@@ -31,15 +31,15 @@
                        SnapsToDevicePixels="True" RenderOptions.BitmapScalingMode="HighQuality" Visibility="Collapsed"/>
                 <Canvas x:Name="CharacterFallback" Width="160" Height="205"
                         HorizontalAlignment="Center" VerticalAlignment="Center">
-                    <Ellipse Width="122" Height="150" Left="19" Top="28" Fill="#FFFFCFE4"/>
-                    <Ellipse Width="114" Height="70" Left="22" Top="15" Fill="#FF573C73"/>
-                    <Ellipse Width="18" Height="24" Left="52" Top="91" Fill="#FF35253F"/>
-                    <Ellipse Width="18" Height="24" Left="91" Top="91" Fill="#FF35253F"/>
-                    <Ellipse Width="8" Height="10" Left="58" Top="97" Fill="White"/>
-                    <Ellipse Width="8" Height="10" Left="95" Top="97" Fill="White"/>
-                    <Border Width="66" Height="34" Left="47" Top="122" Background="#01FFFFFF"
+                    <Ellipse Width="122" Height="150" Canvas.Left="19" Canvas.Top="28" Fill="#FFFFCFE4"/>
+                    <Ellipse Width="114" Height="70" Canvas.Left="22" Canvas.Top="15" Fill="#FF573C73"/>
+                    <Ellipse Width="18" Height="24" Canvas.Left="52" Canvas.Top="91" Fill="#FF35253F"/>
+                    <Ellipse Width="18" Height="24" Canvas.Left="91" Canvas.Top="91" Fill="#FF35253F"/>
+                    <Ellipse Width="8" Height="10" Canvas.Left="58" Canvas.Top="97" Fill="White"/>
+                    <Ellipse Width="8" Height="10" Canvas.Left="95" Canvas.Top="97" Fill="White"/>
+                    <Border Width="66" Height="34" Canvas.Left="47" Canvas.Top="122" Background="#01FFFFFF"
                             BorderBrush="#FFB75C87" BorderThickness="0,0,0,3" CornerRadius="0,0,30,30"/>
-                    <Rectangle Width="36" Height="48" Left="62" Top="166" RadiusX="12" RadiusY="12" Fill="#FFB7D8"/>
+                    <Rectangle Width="36" Height="48" Canvas.Left="62" Canvas.Top="166" RadiusX="12" RadiusY="12" Fill="#FFB7D8"/>
                 </Canvas>
             </Grid>
         </Border>
