@@ -164,6 +164,13 @@ public partial class MainWindow : Window
     {
         Dispatcher.BeginInvoke(() =>
         {
+            if (text == "__RUKA_PAUSE__")
+            {
+                if (!_state.IsPaused)
+                    TogglePause();
+                return;
+            }
+
             if (string.IsNullOrWhiteSpace(text))
             {
                 Speak("ん？どうした？");
