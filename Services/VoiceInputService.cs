@@ -38,7 +38,7 @@ public sealed class VoiceInputService : IDisposable
         catch (Exception ex)
         {
             Error?.Invoke(ex);
-            Stop();
+            StopConversation();
             return false;
         }
     }
