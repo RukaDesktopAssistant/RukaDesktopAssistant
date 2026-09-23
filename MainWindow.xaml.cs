@@ -23,7 +23,7 @@ public partial class MainWindow : Window
     private readonly ShortcutService _shortcuts;
     private readonly CharacterAssetService _assets = new();
     private CharacterAnimationService? _animation;
-    private Point _dragStart;
+    private System.Windows.Point _dragStart;
     private bool _dragging;
     private ChatWindow? _chatWindow;
 
@@ -227,7 +227,7 @@ public partial class MainWindow : Window
         MouseLeftButtonUp += EndDrag;
     }
 
-    private void DragMove(object? sender, MouseEventArgs e)
+    private void DragMove(object? sender, System.Windows.Input.MouseEventArgs e)
     {
         if (!_dragging || e.LeftButton != MouseButtonState.Pressed) return;
 
@@ -247,26 +247,26 @@ public partial class MainWindow : Window
 
     private void Character_MouseRightButtonUp(object sender, MouseButtonEventArgs e)
     {
-        var menu = new ContextMenu();
+        var menu = new System.Windows.Controls.ContextMenu();
         menu.Items.Add(MenuItem("チャットを開く", (_, _) => OpenChat()));
         menu.Items.Add(MenuItem("設定", (_, _) => new SettingsWindow().Show()));
         menu.Items.Add(MenuItem("声で話す", (_, _) => Speak("ん？どうした？")));
         menu.Items.Add(MenuItem("音声入力を開始", (_, _) => StartVoice()));
         menu.Items.Add(MenuItem("音声入力を停止", (_, _) => _voiceInput.StopConversation()));
         menu.Items.Add(MenuItem("少し歩く", (_, _) => _character.Wander()));
-        menu.Items.Add(new Separator());
+        menu.Items.Add(new System.Windows.Controls.Separator());
         menu.Items.Add(MenuItem(
             _state.IsPaused ? "るかを再開" : "るかを待機",
             (_, _) => TogglePause()));
         menu.Items.Add(MenuItem("緊急停止", (_, _) => EmergencyStop()));
         menu.Items.Add(new Separator());
-        menu.Items.Add(MenuItem("終了", (_, _) => Application.Current.Shutdown()));
+        menu.Items.Add(MenuItem("終了", (_, _) => System.Windows.Application.Current.Shutdown()));
         menu.IsOpen = true;
     }
 
-    private static MenuItem MenuItem(string text, RoutedEventHandler action)
+    private static System.Windows.Controls.MenuItem MenuItem(string text, RoutedEventHandler action)
     {
-        var item = new MenuItem { Header = text };
+        var item = new System.Windows.Controls.MenuItem { Header = text };
         item.Click += action;
         return item;
     }
