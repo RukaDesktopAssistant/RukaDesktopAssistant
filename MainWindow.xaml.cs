@@ -1,25 +1,25 @@
 using System.Windows;
 using System.Windows.Input;
-using System.Windows.Threading;
+using RukaDesktopAssistant.Models;
+using RukaDesktopAssistant.Services;
 using Forms = System.Windows.Forms;
 
 namespace RukaDesktopAssistant;
 
 public partial class MainWindow : Window
 {
-    private readonly DispatcherTimer _idleTimer;
-    private bool _paused;
+    private readonly RukaState _state = new();
+    private readonly ConversationStore _conversationStore = new();
+    private readonly ActivityScheduler _activityScheduler;
     private Point _dragStart;
-    private double _windowLeft;
-    private double _windowTop;
+    private bool _dragging;
 
     public MainWindow()
     {
         InitializeComponent();
+        _activityScheduler = new ActivityScheduler(_state, Say);
         Loaded += (_, _) => RestorePosition();
-        _idleTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(30) };
-        _idleTimer.Tick += (_, _) => IdleTick();
-        _idleTimer.Start();
+        _activityScheduler.Start();
     }
 
     private void RestorePosition()
@@ -33,6 +33,7 @@ public partial class MainWindow : Window
     private void Character_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
         _dragStart = e.GetPosition(this);
+        _dragging = true;
         CaptureMouse();
         MouseMove += DragMove;
         MouseLeftButtonUp += EndDrag;
@@ -40,7 +41,7 @@ public partial class MainWindow : Window
 
     private void DragMove(object? sender, MouseEventArgs e)
     {
-        if (e.LeftButton != MouseButtonState.Pressed) return;
+        if (!_dragging || e.LeftButton != MouseButtonState.Pressed) return;
         var p = e.GetPosition(null);
         Left = p.X - _dragStart.X;
         Top = p.Y - _dragStart.Y;
@@ -48,18 +49,21 @@ public partial class MainWindow : Window
 
     private void EndDrag(object? sender, MouseButtonEventArgs e)
     {
+        _dragging = false;
         ReleaseMouseCapture();
         MouseMove -= DragMove;
         MouseLeftButtonUp -= EndDrag;
-        _windowLeft = Left;
-        _windowTop = Top;
     }
 
     private void Character_MouseRightButtonUp(object sender, MouseButtonEventArgs e)
     {
         var menu = new ContextMenu();
-        menu.Items.Add(MenuItem("チャットを開く", (_, _) => new ChatWindow().Show()));
-        menu.Items.Add(MenuItem(_paused ? "るかを再開" : "るかを待機", (_, _) => TogglePause()));
+        menu.Items.Add(MenuItem("チャットを開く", (_, _) => OpenChat()));
+        menu.Items.Add(MenuItem("設定", (_, _) => new SettingsWindow().Show()));
+        menu.Items.Add(new Separator());
+        menu.Items.Add(MenuItem(_state.IsPaused ? "るかを再開" : "るかを待機", (_, _) => TogglePause()));
+        menu.Items.Add(MenuItem("緊急停止", (_, _) => EmergencyStop()));
+        menu.Items.Add(new Separator());
         menu.Items.Add(MenuItem("終了", (_, _) => Application.Current.Shutdown()));
         menu.IsOpen = true;
     }
@@ -71,17 +75,20 @@ public partial class MainWindow : Window
         return item;
     }
 
+    private void OpenChat() => new ChatWindow(_conversationStore).Show();
+
     private void TogglePause()
     {
-        _paused = !_paused;
-        if (_paused) _idleTimer.Stop(); else _idleTimer.Start();
-        Say(_paused ? "ちょっと待機するね。" : "戻ったよ！");
+        _state.IsPaused = !_state.IsPaused;
+        if (_state.IsPaused) _activityScheduler.Stop(); else _activityScheduler.Start();
+        Say(_state.IsPaused ? "ちょっと待機するね。" : "戻ったよ！");
     }
 
-    private void IdleTick()
+    private void EmergencyStop()
     {
-        if (_paused) return;
-        // Placeholder for autonomous behavior scheduler.
+        _state.IsPaused = true;
+        _activityScheduler.Stop();
+        Say("緊急停止したよ。");
     }
 
     public void Say(string text)
