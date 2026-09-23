@@ -6,23 +6,62 @@
     ResizeMode="NoResize">
     <Window.Resources>
         <Storyboard x:Key="IdleFloat">
-            <DoubleAnimation Storyboard.TargetName="Character" Storyboard.TargetProperty="RenderTransform.(TranslateTransform.Y)"
-                             From="0" To="-5" Duration="0:0:1.4" AutoReverse="True" RepeatBehavior="Forever"/>
+            <DoubleAnimation Storyboard.TargetName="Character"
+                             Storyboard.TargetProperty="RenderTransform.(TranslateTransform.Y)"
+                             From="0" To="-5" Duration="0:0:1.4"
+                             AutoReverse="True" RepeatBehavior="Forever"/>
+        </Storyboard>
+        <Storyboard x:Key="TalkPulse">
+            <DoubleAnimation Storyboard.TargetName="CharacterImage"
+                             Storyboard.TargetProperty="Opacity"
+                             From="0.86" To="1" Duration="0:0:0.22"
+                             AutoReverse="True" RepeatBehavior="2x"/>
         </Storyboard>
     </Window.Resources>
+
     <Grid Background="Transparent" Margin="8">
-        <Border x:Name="Bubble" Background="#EE20242B" CornerRadius="14" Padding="12,8"
-                HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,0,0,70"
+        <Border x:Name="Bubble"
+                Background="#EE20242B"
+                CornerRadius="14"
+                Padding="12,8"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Top"
+                Margin="0,0,0,70"
                 Visibility="Collapsed">
-            <TextBlock x:Name="BubbleText" Foreground="White" TextWrapping="Wrap" MaxWidth="280"/>
+            <TextBlock x:Name="BubbleText"
+                       Foreground="White"
+                       TextWrapping="Wrap"
+                       MaxWidth="320"/>
         </Border>
-        <Border x:Name="Character" Width="180" Height="180" Background="#01FFFFFF"
+
+        <Border x:Name="Character"
+                Width="180"
+                Height="220"
+                Background="#01FFFFFF"
                 MouseLeftButtonDown="Character_MouseLeftButtonDown"
-                MouseRightButtonUp="Character_MouseRightButtonUp" ToolTip="Ruka"
+                MouseRightButtonUp="Character_MouseRightButtonUp"
+                ToolTip="Ruka"
                 RenderTransformOrigin="0.5,0.5">
-            <Border.RenderTransform><TranslateTransform/></Border.RenderTransform>
-            <TextBlock Text="るか" FontSize="52" FontWeight="Bold" Foreground="#FFB7D8"
-                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            <Border.RenderTransform>
+                <TranslateTransform/>
+            </Border.RenderTransform>
+
+            <Grid>
+                <Image x:Name="CharacterImage"
+                       Width="180"
+                       Height="220"
+                       Stretch="Uniform"
+                       SnapsToDevicePixels="True"
+                       RenderOptions.BitmapScalingMode="HighQuality"
+                       Visibility="Collapsed"/>
+                <TextBlock x:Name="CharacterFallback"
+                           Text="るか"
+                           FontSize="52"
+                           FontWeight="Bold"
+                           Foreground="#FFB7D8"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"/>
+            </Grid>
         </Border>
     </Grid>
 </Window>
