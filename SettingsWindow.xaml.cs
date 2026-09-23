@@ -108,7 +108,7 @@ public partial class SettingsWindow : Window
         _appearance.Opacity = OpacitySlider.Value;
         _appearance.Save();
 
-        MessageBox.Show("設定を保存したよ。再起動すると、るか本体にもすべて反映されるよ。", "るか",
+        System.Windows.MessageBox.Show("設定を保存したよ。再起動すると、るか本体にもすべて反映されるよ。", "るか",
             MessageBoxButton.OK, MessageBoxImage.Information);
     }
 
