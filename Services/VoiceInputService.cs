@@ -53,6 +53,15 @@ public sealed class VoiceInputService : IDisposable
     {
         if (string.IsNullOrWhiteSpace(text)) return;
 
+        var normalized = text.Replace(" ", "").Replace("　", "").Trim();
+        if (normalized.Contains("るか、待って", StringComparison.OrdinalIgnoreCase)
+            || normalized.Contains("るか待って", StringComparison.OrdinalIgnoreCase))
+        {
+            EndConversation();
+            Recognized?.Invoke("__RUKA_PAUSE__");
+            return;
+        }
+
         if (!_conversationActive)
         {
             if (!_wakeWord.Matches(text)) return;
