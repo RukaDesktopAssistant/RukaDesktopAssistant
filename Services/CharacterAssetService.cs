@@ -15,7 +15,7 @@ public sealed class CharacterAssetService
 
             var image = new BitmapImage();
             image.BeginInit();
-            image.UriSource = new Uri(path, UriKind.Absolute);
+            image.UriSource = new System.Uri(path, System.UriKind.Absolute);
             image.CacheOption = BitmapCacheOption.OnLoad;
             image.EndInit();
             image.Freeze();
