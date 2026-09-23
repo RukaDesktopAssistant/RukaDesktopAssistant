@@ -25,6 +25,12 @@ public partial class ChatWindow : Window
         Input.Focus();
     }
 
+    public void SubmitVoiceText(string text)
+    {
+        Input.Text = text;
+        Send_Click(this, new RoutedEventArgs());
+    }
+
     private void LoadHistory()
     {
         foreach (var message in _store.Messages.TakeLast(100))
