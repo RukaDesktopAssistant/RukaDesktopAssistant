@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media.Animation;
 using RukaDesktopAssistant.Models;
 using RukaDesktopAssistant.Services;
 using Forms = System.Windows.Forms;
@@ -21,7 +22,11 @@ public partial class MainWindow : Window
         InitializeComponent();
         _character = new CharacterController(this);
         _activityScheduler = new ActivityScheduler(_state, Say);
-        Loaded += (_, _) => RestorePosition();
+        Loaded += (_, _) =>
+        {
+            RestorePosition();
+            ((Storyboard)FindResource("IdleFloat")).Begin(this, true);
+        };
         Closed += (_, _) => _voice.Dispose();
         _activityScheduler.Start();
     }
@@ -95,6 +100,11 @@ public partial class MainWindow : Window
         _state.IsPaused = true;
         _activityScheduler.Stop();
         Say("緊急停止したよ。");
+    }
+
+    private void Speak(string text)
+    {
+        Say(text);
     }
 
     public void Say(string text)
