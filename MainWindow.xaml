@@ -12,9 +12,13 @@
                              AutoReverse="True" RepeatBehavior="Forever"/>
         </Storyboard>
         <Storyboard x:Key="TalkPulse">
-            <DoubleAnimation Storyboard.TargetName="CharacterImage"
-                             Storyboard.TargetProperty="Opacity"
-                             From="0.86" To="1" Duration="0:0:0.22"
+            <DoubleAnimation Storyboard.TargetName="CharacterVisual"
+                             Storyboard.TargetProperty="RenderTransform.(ScaleTransform.ScaleX)"
+                             From="1" To="1.035" Duration="0:0:0.22"
+                             AutoReverse="True" RepeatBehavior="2x"/>
+            <DoubleAnimation Storyboard.TargetName="CharacterVisual"
+                             Storyboard.TargetProperty="RenderTransform.(ScaleTransform.ScaleY)"
+                             From="1" To="1.035" Duration="0:0:0.22"
                              AutoReverse="True" RepeatBehavior="2x"/>
         </Storyboard>
     </Window.Resources>
@@ -46,7 +50,11 @@
                 <TranslateTransform/>
             </Border.RenderTransform>
 
-            <Grid>
+            <Grid x:Name="CharacterVisual" RenderTransformOrigin="0.5,0.5">
+                <Grid.RenderTransform>
+                    <ScaleTransform/>
+                </Grid.RenderTransform>
+
                 <Image x:Name="CharacterImage"
                        Width="180"
                        Height="220"
@@ -54,13 +62,29 @@
                        SnapsToDevicePixels="True"
                        RenderOptions.BitmapScalingMode="HighQuality"
                        Visibility="Collapsed"/>
-                <TextBlock x:Name="CharacterFallback"
-                           Text="るか"
-                           FontSize="52"
-                           FontWeight="Bold"
-                           Foreground="#FFB7D8"
-                           HorizontalAlignment="Center"
-                           VerticalAlignment="Center"/>
+
+                <Canvas x:Name="CharacterFallback" Width="160" Height="205"
+                        HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <Ellipse Width="122" Height="150" Left="19" Top="28"
+                             Fill="#FFFFCFE4"/>
+                    <Ellipse Width="114" Height="70" Left="22" Top="15"
+                             Fill="#FF573C73"/>
+                    <Ellipse Width="18" Height="24" Left="52" Top="91"
+                             Fill="#FF35253F"/>
+                    <Ellipse Width="18" Height="24" Left="91" Top="91"
+                             Fill="#FF35253F"/>
+                    <Ellipse Width="8" Height="10" Left="58" Top="97"
+                             Fill="White"/>
+                    <Ellipse Width="8" Height="10" Left="95" Top="97"
+                             Fill="White"/>
+                    <ArcSegment/>
+                    <Border Width="66" Height="34" Left="47" Top="122"
+                            Background="#01FFFFFF"
+                            BorderBrush="#FFB75C87" BorderThickness="0,0,0,3"
+                            CornerRadius="0,0,30,30"/>
+                    <Rectangle Width="36" Height="48" Left="62" Top="166"
+                               RadiusX="12" RadiusY="12" Fill="#FFB7D8"/>
+                </Canvas>
             </Grid>
         </Border>
     </Grid>
