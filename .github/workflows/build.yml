@@ -1,4 +1,4 @@
-name: Build Ruka Desktop Assistant
+name: Build and Package Ruka Desktop Assistant
 
 on:
   push:
@@ -14,18 +14,33 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
+
       - name: Restore
         run: dotnet restore RukaDesktopAssistant.csproj
+
       - name: Build
         run: dotnet build RukaDesktopAssistant.csproj --configuration Release --no-restore
+
       - name: Publish
-        run: dotnet publish RukaDesktopAssistant.csproj --configuration Release --no-restore --self-contained false -o publish
-      - name: Upload build
+        run: dotnet publish RukaDesktopAssistant.csproj --configuration Release --runtime win-x64 --self-contained true --configuration Release -o publish
+
+      - name: Create ZIP
+        shell: pwsh
+        run: Compress-Archive -Path publish\* -DestinationPath RukaDesktopAssistant-win-x64.zip -Force
+
+      - name: Upload portable build
         uses: actions/upload-artifact@v4
         with:
-          name: RukaDesktopAssistant-build
+          name: RukaDesktopAssistant-win-x64
+          path: RukaDesktopAssistant-win-x64.zip
+
+      - name: Upload publish folder
+        uses: actions/upload-artifact@v4
+        with:
+          name: RukaDesktopAssistant-publish
           path: publish
