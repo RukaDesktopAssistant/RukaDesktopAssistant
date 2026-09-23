@@ -16,10 +16,32 @@
             <StackPanel>
                 <TextBlock x:Name="PageTitle" FontSize="28" FontWeight="SemiBold" Text="システム"/>
                 <TextBlock x:Name="PageDescription" Margin="0,10,0,28" TextWrapping="Wrap"/>
-                <CheckBox Content="Windows起動時にるかを起動する" IsChecked="True" Margin="0,8"/>
-                <CheckBox Content="ゲーム中は自動で端に退避する" IsChecked="True" Margin="0,8"/>
-                <CheckBox Content="Discord通話中はウェイクワード待機にする" IsChecked="True" Margin="0,8"/>
-                <CheckBox Content="危険なPC操作は必ず確認する" IsChecked="True" Margin="0,8"/>
+                <GroupBox Header="基本動作" Margin="0,0,0,18">
+                    <StackPanel Margin="12">
+                        <CheckBox Content="Windows起動時にるかを起動する" IsChecked="True" Margin="0,8"/>
+                        <CheckBox Content="ゲーム中は自動で端に退避する" IsChecked="True" Margin="0,8"/>
+                        <CheckBox Content="Discord通話中はウェイクワード待機にする" IsChecked="True" Margin="0,8"/>
+                        <CheckBox Content="危険なPC操作は必ず確認する" IsChecked="True" Margin="0,8"/>
+                    </StackPanel>
+                </GroupBox>
+                <GroupBox Header="権限" Margin="0,0,0,18">
+                    <StackPanel Margin="12">
+                        <CheckBox Content="画面・アプリ状態の読み取りを許可" Margin="0,6"/>
+                        <CheckBox Content="アプリの起動を許可" Margin="0,6"/>
+                        <CheckBox Content="ファイルの読み取りを許可" Margin="0,6"/>
+                        <CheckBox Content="ファイルの変更を許可" Margin="0,6"/>
+                        <CheckBox Content="ブラウザ操作を許可" Margin="0,6"/>
+                        <CheckBox Content="Windows設定の変更を許可" Margin="0,6"/>
+                    </StackPanel>
+                </GroupBox>
+                <GroupBox Header="音声" Margin="0,0,0,18">
+                    <StackPanel Margin="12">
+                        <CheckBox Content="ウェイクワードを有効にする" IsChecked="True" Margin="0,6"/>
+                        <TextBlock Text="ウェイクワード"/>
+                        <TextBox Text="ねぇ、るか" Margin="0,4,0,8"/>
+                        <CheckBox Content="音声合成を有効にする" IsChecked="True" Margin="0,6"/>
+                    </StackPanel>
+                </GroupBox>
             </StackPanel>
         </ScrollViewer>
     </Grid>
