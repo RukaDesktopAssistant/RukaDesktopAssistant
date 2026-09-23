@@ -1,15 +1,14 @@
-using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Media.Imaging;
+using WpfImage = System.Windows.Controls.Image;
 
 namespace RukaDesktopAssistant.Services;
 
 public sealed class CharacterAnimationService
 {
     private readonly CharacterAssetService _assets;
-    private readonly Image _image;
+    private readonly WpfImage _image;
 
-    public CharacterAnimationService(CharacterAssetService assets, Image image)
+    public CharacterAnimationService(CharacterAssetService assets, WpfImage image)
     {
         _assets = assets;
         _image = image;
@@ -24,15 +23,13 @@ public sealed class CharacterAnimationService
             "walk" => "ruka-walk-1.png",
             _ => "ruka-idle.png"
         };
-
         BitmapImage? image = _assets.TryLoad(filename);
         if (image is null && filename != "ruka-idle.png")
             image = _assets.TryLoad("ruka-idle.png");
-
         if (image is not null)
         {
             _image.Source = image;
-            _image.Visibility = Visibility.Visible;
+            _image.Visibility = System.Windows.Visibility.Visible;
         }
     }
 }
