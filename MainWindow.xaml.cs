@@ -3,6 +3,7 @@ using System.Windows.Input;
 using System.Windows.Media.Animation;
 using RukaDesktopAssistant.Models;
 using RukaDesktopAssistant.Services;
+using RukaDesktopAssistant.Services.AI;
 using Forms = System.Windows.Forms;
 
 namespace RukaDesktopAssistant;
@@ -13,14 +14,18 @@ public partial class MainWindow : Window
     private readonly ConversationStore _conversationStore = new();
     private readonly VoiceService _voice = new();
     private readonly SettingsStore _settings = new();
+    private readonly AppearanceSettings _appearance = new();
+    private readonly AudioSettingsStore _audioStore = new();
     private readonly WakeWordService _wakeWord = new();
     private readonly VoiceInputService _voiceInput;
     private readonly ActivityScheduler _activityScheduler;
     private readonly CharacterController _character;
     private readonly ShortcutService _shortcuts;
     private readonly CharacterAssetService _assets = new();
+    private CharacterAnimationService? _animation;
     private Point _dragStart;
     private bool _dragging;
+    private bool _suppressContextVisibility;
     private ChatWindow? _chatWindow;
 
     public MainWindow()
@@ -28,13 +33,18 @@ public partial class MainWindow : Window
         InitializeComponent();
 
         _settings.Load();
-        _wakeWord.WakePhrase = _settings.WakePhrase;
-        _voice.Rate = (int)_settings.VoiceRate;
-        _voice.Volume = (int)_settings.VoiceVolume;
-        _voice.Enabled = true;
+        _appearance.Load();
+        _audioStore.Load();
+
+        _wakeWord.WakePhrase = _audioStore.Current.WakePhrase;
+        _wakeWord.Enabled = _audioStore.Current.WakeWordEnabled;
+        _voice.Rate = _audioStore.Current.TtsRate;
+        _voice.Volume = _audioStore.Current.TtsVolume;
+        _voice.Enabled = _audioStore.Current.TtsEnabled;
 
         _character = new CharacterController(this);
         _activityScheduler = new ActivityScheduler(_state, Say);
+        _activityScheduler.ContextChanged += OnContextChanged;
         _shortcuts = new ShortcutService(this);
         _voiceInput = new VoiceInputService(_wakeWord);
 
@@ -43,6 +53,7 @@ public partial class MainWindow : Window
 
         Loaded += (_, _) =>
         {
+            ApplyAppearance();
             RestorePosition();
             LoadCharacterAsset();
             ((Storyboard)FindResource("IdleFloat")).Begin(this, true);
@@ -53,6 +64,7 @@ public partial class MainWindow : Window
 
         Closed += (_, _) =>
         {
+            SavePosition();
             _shortcuts.Dispose();
             _voiceInput.Dispose();
             _voice.Dispose();
@@ -64,8 +76,25 @@ public partial class MainWindow : Window
         _activityScheduler.Start();
     }
 
+    private void ApplyAppearance()
+    {
+        Topmost = _appearance.AlwaysOnTop;
+        Opacity = _appearance.Opacity;
+        var scale = Math.Clamp(_appearance.Scale, 0.5, 2.0);
+        CharacterVisual.RenderTransformOrigin = new Point(0.5, 0.5);
+        if (CharacterVisual.RenderTransform is System.Windows.Media.ScaleTransform st)
+        {
+            st.ScaleX = scale;
+            st.ScaleY = scale;
+        }
+        Bubble.Visibility = _appearance.ShowSpeechBubble ? Visibility.Collapsed : Visibility.Collapsed;
+    }
+
     private void LoadCharacterAsset()
     {
+        _animation = new CharacterAnimationService(_assets, CharacterImage);
+        _animation.SetState("idle");
+
         var image = _assets.TryLoad("ruka-idle.png");
         if (image is null)
         {
@@ -79,16 +108,49 @@ public partial class MainWindow : Window
         CharacterFallback.Visibility = Visibility.Collapsed;
     }
 
+    private void OnContextChanged(AppContextInfo context, GameProfile profile)
+    {
+        if (!Dispatcher.CheckAccess())
+        {
+            Dispatcher.BeginInvoke(() => OnContextChanged(context, profile));
+            return;
+        }
+
+        var inGame = context.IsKnownGame;
+        var show = !inGame || (_settings.ShowDuringGames && profile.ShowCharacter);
+
+        _suppressContextVisibility = !show;
+        Character.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
+
+        if (show && inGame && profile.MoveToSide)
+        {
+            MoveToSide();
+        }
+
+        var scale = inGame ? profile.Scale : _appearance.Scale;
+        if (CharacterVisual.RenderTransform is System.Windows.Media.ScaleTransform st)
+        {
+            st.ScaleX = Math.Clamp(scale, 0.5, 2.0);
+            st.ScaleY = Math.Clamp(scale, 0.5, 2.0);
+        }
+    }
+
+    private void MoveToSide()
+    {
+        var area = Forms.Screen.FromHandle(new System.Windows.Interop.WindowInteropHelper(this).Handle).WorkingArea;
+        Left = area.Right - Width - 24;
+        Top = area.Bottom - Height - 24;
+    }
+
     private void OnVoiceRecognized(string text)
     {
         if (string.IsNullOrWhiteSpace(text))
         {
-            Say("ん？どうした？");
+            Speak("ん？どうした？");
             return;
         }
 
-        var chat = OpenChat();
-        chat.SubmitVoiceText(text);
+        OpenChat().SubmitVoiceText(text);
     }
 
     private void ApplyStartupSetting()
@@ -108,6 +170,13 @@ public partial class MainWindow : Window
         if (area is null) return;
         Left = area.Value.Right - Width - 40;
         Top = area.Value.Bottom - Height - 40;
+    }
+
+    private void SavePosition()
+    {
+        if (_appearance is null) return;
+        _appearance.Position = $"{Left:0},{Top:0}";
+        _appearance.Save();
     }
 
     private void Character_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -133,6 +202,7 @@ public partial class MainWindow : Window
         ReleaseMouseCapture();
         MouseMove -= DragMove;
         MouseLeftButtonUp -= EndDrag;
+        SavePosition();
     }
 
     private void Character_MouseRightButtonUp(object sender, MouseButtonEventArgs e)
@@ -162,7 +232,21 @@ public partial class MainWindow : Window
     private void StartVoice()
     {
         if (_voiceInput.Start())
-            Say("聞いてるよ。『ねぇ、るか』って呼んでね。");
+            Say($"聞いてるよ。『{_wakeWord.WakePhrase}』って呼んでね。");
+    }
+
+    private IAiProvider CreateAiProvider()
+    {
+        var providerSettings = new ProviderSettings();
+        providerSettings.Load();
+
+        if (providerSettings.Provider.Equals("http", StringComparison.OrdinalIgnoreCase)
+            && Uri.TryCreate(providerSettings.Endpoint, UriKind.Absolute, out var endpoint))
+        {
+            return new HttpAiProvider(new HttpClient(), endpoint.ToString());
+        }
+
+        return new LocalAiProvider();
     }
 
     private ChatWindow OpenChat()
@@ -173,7 +257,7 @@ public partial class MainWindow : Window
             return _chatWindow;
         }
 
-        _chatWindow = new ChatWindow(_conversationStore);
+        _chatWindow = new ChatWindow(_conversationStore, CreateAiProvider());
         _chatWindow.Closed += (_, _) => _chatWindow = null;
         _chatWindow.Show();
         return _chatWindow;
@@ -192,7 +276,7 @@ public partial class MainWindow : Window
             _activityScheduler.Start();
         }
 
-        Say(_state.IsPaused ? "ちょっと待機するね。" : "戻ったよ！");
+        Speak(_state.IsPaused ? "ちょっと待機するね。" : "戻ったよ！");
     }
 
     private void EmergencyStop()
@@ -201,13 +285,18 @@ public partial class MainWindow : Window
         _activityScheduler.Stop();
         _voiceInput.StopConversation();
         _voice.Stop();
-        Say("緊急停止したよ。");
+        Speak("緊急停止したよ。");
     }
 
     private void Speak(string text)
     {
-        BubbleText.Text = text;
-        Bubble.Visibility = Visibility.Visible;
+        if (_appearance.ShowSpeechBubble)
+        {
+            BubbleText.Text = text;
+            Bubble.Visibility = Visibility.Visible;
+        }
+
+        _animation?.SetState("talk");
         _voice.Speak(text);
         ((Storyboard)FindResource("TalkPulse")).Begin(this, true);
     }
