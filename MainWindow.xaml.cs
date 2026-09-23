@@ -168,6 +168,17 @@ public partial class MainWindow : Window
     {
         var area = Forms.Screen.PrimaryScreen?.WorkingArea;
         if (area is null) return;
+
+        var parts = _appearance.Position.Split(',', StringSplitOptions.TrimEntries);
+        if (parts.Length == 2
+            && double.TryParse(parts[0], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var savedLeft)
+            && double.TryParse(parts[1], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var savedTop))
+        {
+            Left = Math.Clamp(savedLeft, area.Value.Left, area.Value.Right - Width);
+            Top = Math.Clamp(savedTop, area.Value.Top, area.Value.Bottom - Height);
+            return;
+        }
+
         Left = area.Value.Right - Width - 40;
         Top = area.Value.Bottom - Height - 40;
     }
