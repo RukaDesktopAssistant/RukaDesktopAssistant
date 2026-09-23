@@ -10,4 +10,10 @@ public sealed class WakeWordService
         if (!Enabled) return false;
         return recognizedText.Contains(WakePhrase, StringComparison.OrdinalIgnoreCase);
     }
+
+    public string RemoveWakePhrase(string recognizedText)
+    {
+        if (!Matches(recognizedText)) return recognizedText.Trim();
+        return recognizedText.Replace(WakePhrase, string.Empty, StringComparison.OrdinalIgnoreCase).Trim();
+    }
 }
