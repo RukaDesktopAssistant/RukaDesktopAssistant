@@ -14,6 +14,7 @@ public partial class MainWindow : Window
     private readonly VoiceService _voice = new();
     private readonly ActivityScheduler _activityScheduler;
     private readonly CharacterController _character;
+    private readonly ShortcutService _shortcuts;
     private Point _dragStart;
     private bool _dragging;
 
@@ -22,13 +23,40 @@ public partial class MainWindow : Window
         InitializeComponent();
         _character = new CharacterController(this);
         _activityScheduler = new ActivityScheduler(_state, Say);
+        _shortcuts = new ShortcutService(this);
+
         Loaded += (_, _) =>
         {
             RestorePosition();
             ((Storyboard)FindResource("IdleFloat")).Begin(this, true);
+            _shortcuts.Start();
+            ApplyStartupSetting();
         };
-        Closed += (_, _) => _voice.Dispose();
+
+        Closed += (_, _) =>
+        {
+            _shortcuts.Dispose();
+            _voice.Dispose();
+        };
+
+        _shortcuts.Pause += TogglePause;
+        _shortcuts.OpenChat += OpenChat;
+        _shortcuts.EmergencyStop += EmergencyStop;
         _activityScheduler.Start();
+    }
+
+    private void ApplyStartupSetting()
+    {
+        var settings = new SettingsStore();
+        settings.Load();
+        if (!settings.StartWithWindows) return;
+
+        try
+        {
+            var startup = new StartupService();
+            startup.SetEnabled(true, Environment.ProcessPath ?? System.Reflection.Assembly.GetExecutingAssembly().Location);
+        }
+        catch { }
     }
 
     private void RestorePosition()
@@ -99,13 +127,11 @@ public partial class MainWindow : Window
     {
         _state.IsPaused = true;
         _activityScheduler.Stop();
+        _voice.Stop();
         Say("緊急停止したよ。");
     }
 
-    private void Speak(string text)
-    {
-        Say(text);
-    }
+    private void Speak(string text) => Say(text);
 
     public void Say(string text)
     {
