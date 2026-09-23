@@ -27,6 +27,10 @@ public partial class MainWindow : Window
 
         _settings.Load();
         _wakeWord.WakePhrase = _settings.WakePhrase;
+        _voice.Rate = (int)_settings.VoiceRate;
+        _voice.Volume = (int)_settings.VoiceVolume;
+        _voice.Enabled = true;
+
         _character = new CharacterController(this);
         _activityScheduler = new ActivityScheduler(_state, Say);
         _shortcuts = new ShortcutService(this);
@@ -41,7 +45,7 @@ public partial class MainWindow : Window
             ((Storyboard)FindResource("IdleFloat")).Begin(this, true);
             _shortcuts.Start();
             ApplyStartupSetting();
-            if (_settings.VoiceInputEnabled) _voiceInput.Start();
+            if (_settings.VoiceInputEnabled) StartVoice();
         };
 
         Closed += (_, _) =>
@@ -65,19 +69,17 @@ public partial class MainWindow : Window
             return;
         }
 
-        Say(text);
         OpenChat();
+        Say(text);
     }
 
     private void ApplyStartupSetting()
     {
-        if (!_settings.StartWithWindows) return;
-
         try
         {
             var startup = new StartupService();
-            startup.SetEnabled(true, Environment.ProcessPath ??
-                System.Reflection.Assembly.GetExecutingAssembly().Location);
+            startup.SetEnabled(_settings.StartWithWindows,
+                Environment.ProcessPath ?? System.Reflection.Assembly.GetExecutingAssembly().Location);
         }
         catch { }
     }
@@ -150,7 +152,16 @@ public partial class MainWindow : Window
     private void TogglePause()
     {
         _state.IsPaused = !_state.IsPaused;
-        if (_state.IsPaused) _activityScheduler.Stop(); else _activityScheduler.Start();
+        if (_state.IsPaused)
+        {
+            _activityScheduler.Stop();
+            _voiceInput.StopConversation();
+        }
+        else
+        {
+            _activityScheduler.Start();
+        }
+
         Say(_state.IsPaused ? "ちょっと待機するね。" : "戻ったよ！");
     }
 
