@@ -5,6 +5,9 @@ on:
     branches: [ main ]
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: windows-latest
@@ -19,3 +22,10 @@ jobs:
         run: dotnet restore RukaDesktopAssistant.csproj
       - name: Build
         run: dotnet build RukaDesktopAssistant.csproj --configuration Release --no-restore
+      - name: Publish
+        run: dotnet publish RukaDesktopAssistant.csproj --configuration Release --no-restore --self-contained false -o publish
+      - name: Upload build
+        uses: actions/upload-artifact@v4
+        with:
+          name: RukaDesktopAssistant-build
+          path: publish
