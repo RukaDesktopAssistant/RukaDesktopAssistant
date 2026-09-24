@@ -50,6 +50,8 @@ public partial class SettingsWindow : Window
             .FirstOrDefault(x => string.Equals(x.Content?.ToString(), _providerSettings.Provider, StringComparison.OrdinalIgnoreCase))
             ?? AiProvider.Items[0];
         AiEndpoint.Text = _providerSettings.Endpoint;
+        AiApiKey.Text = _providerSettings.ApiKey;
+        AiModel.Text = _providerSettings.Model;
         SendHistory.IsChecked = _providerSettings.SendRecentHistory;
         HistoryCount.Value = _providerSettings.HistoryCount;
 
@@ -90,6 +92,8 @@ public partial class SettingsWindow : Window
 
         _providerSettings.Provider = (AiProvider.SelectedItem as System.Windows.Controls.ComboBoxItem)?.Content?.ToString() ?? "local";
         _providerSettings.Endpoint = AiEndpoint.Text.Trim();
+        _providerSettings.ApiKey = AiApiKey.Text.Trim();
+        _providerSettings.Model = string.IsNullOrWhiteSpace(AiModel.Text) ? "gpt-4o-mini" : AiModel.Text.Trim();
         _providerSettings.SendRecentHistory = SendHistory.IsChecked == true;
         _providerSettings.HistoryCount = (int)Math.Round(HistoryCount.Value);
         _providerSettings.Save();
@@ -110,6 +114,44 @@ public partial class SettingsWindow : Window
 
         System.Windows.MessageBox.Show("設定を保存したよ。再起動すると、るか本体にもすべて反映されるよ。", "るか",
             MessageBoxButton.OK, MessageBoxImage.Information);
+    }
+
+    private async void TestAi_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var provider = (AiProvider.SelectedItem as System.Windows.Controls.ComboBoxItem)?.Content?.ToString() ?? "local";
+            if (!provider.Equals("openai", StringComparison.OrdinalIgnoreCase))
+            {
+                MessageBox.Show("AI接続テストは openai プロバイダーで実行できます。", "るか");
+                return;
+            }
+
+            var endpoint = AiEndpoint.Text.Trim();
+            var key = string.IsNullOrWhiteSpace(AiApiKey.Text)
+                ? Environment.GetEnvironmentVariable("RUKA_AI_API_KEY") ?? ""
+                : AiApiKey.Text.Trim();
+            var model = string.IsNullOrWhiteSpace(AiModel.Text) ? "gpt-4o-mini" : AiModel.Text.Trim();
+
+            if (!Uri.TryCreate(endpoint, UriKind.Absolute, out _))
+            {
+                MessageBox.Show("APIエンドポイントが正しくありません。", "るか");
+                return;
+            }
+
+            var client = new System.Net.Http.HttpClient { Timeout = TimeSpan.FromSeconds(20) };
+            var test = new OpenAiCompatibleProvider(
+                client, endpoint, key, model,
+                "接続テスト用アシスタント。短く返答してください。");
+
+            await test.GenerateAsync("接続テスト", []);
+            MessageBox.Show("AI接続成功！実際にAPIから返答を受け取れたよ。", "るか");
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show("AI接続テスト失敗。\n" + ex.Message, "るか",
+                MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
     }
 
     private void Navigation_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
