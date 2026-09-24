@@ -1,12 +1,12 @@
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 
 namespace RukaDesktopAssistant.Services;
 
 public sealed class ProviderSettings
 {
-    private readonly string _file = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        "RukaDesktopAssistant", "ai.json");
+    private readonly string _file = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "RukaDesktopAssistant", "ai.json");
 
     public string Provider { get; set; } = "local";
     public string Endpoint { get; set; } = "https://api.openai.com/v1/chat/completions";
@@ -24,7 +24,7 @@ public sealed class ProviderSettings
             if (data is null) return;
             Provider = string.IsNullOrWhiteSpace(data.Provider) ? "local" : data.Provider;
             Endpoint = string.IsNullOrWhiteSpace(data.Endpoint) ? "https://api.openai.com/v1/chat/completions" : data.Endpoint;
-            ApiKey = data.ApiKey ?? "";
+            ApiKey = Unprotect(data.ApiKey ?? "");
             Model = string.IsNullOrWhiteSpace(data.Model) ? "gpt-4o-mini" : data.Model;
             SendRecentHistory = data.SendRecentHistory;
             HistoryCount = Math.Clamp(data.HistoryCount, 1, 100);
@@ -37,13 +37,41 @@ public sealed class ProviderSettings
         try
         {
             Directory.CreateDirectory(Path.GetDirectoryName(_file)!);
-            File.WriteAllText(_file, JsonSerializer.Serialize(this, new JsonSerializerOptions { WriteIndented = true }));
+            var copy = new ProviderSettings
+            {
+                Provider = Provider,
+                Endpoint = Endpoint,
+                ApiKey = Protect(ApiKey ?? ""),
+                Model = Model,
+                SendRecentHistory = SendRecentHistory,
+                HistoryCount = HistoryCount
+            };
+            File.WriteAllText(_file, JsonSerializer.Serialize(copy, new JsonSerializerOptions { WriteIndented = true }));
         }
         catch { }
     }
 
-    public string EffectiveApiKey =>
-        string.IsNullOrWhiteSpace(ApiKey)
-            ? Environment.GetEnvironmentVariable("RUKA_AI_API_KEY") ?? ""
-            : ApiKey;
+    public string EffectiveApiKey => string.IsNullOrWhiteSpace(ApiKey) ? Environment.GetEnvironmentVariable("RUKA_AI_API_KEY") ?? "" : ApiKey;
+
+    private static string Protect(string value)
+    {
+        if (string.IsNullOrEmpty(value)) return "";
+        try
+        {
+            var bytes = ProtectedData.Protect(Encoding.UTF8.GetBytes(value), null, DataProtectionScope.CurrentUser);
+            return "dpapi:" + Convert.ToBase64String(bytes);
+        }
+        catch { return value; }
+    }
+
+    private static string Unprotect(string value)
+    {
+        if (string.IsNullOrEmpty(value) || !value.StartsWith("dpapi:", StringComparison.Ordinal)) return value;
+        try
+        {
+            var bytes = ProtectedData.Unprotect(Convert.FromBase64String(value[6..]), null, DataProtectionScope.CurrentUser);
+            return Encoding.UTF8.GetString(bytes);
+        }
+        catch { return ""; }
+    }
 }
