@@ -18,13 +18,32 @@ public sealed class PersonalityStore
         Save();
     }
 
+    public void Remove(string name)
+    {
+        _profiles.RemoveAll(x => x.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+        Save();
+    }
+
+    public void Clear()
+    {
+        _profiles.Clear();
+        Save();
+    }
+
     private void Load()
     {
-        try { if(File.Exists(_file)){var x=JsonSerializer.Deserialize<List<PersonalityProfile>>(File.ReadAllText(_file));if(x!=null)_profiles.AddRange(x);}}catch{}
+        try {
+            if (!File.Exists(_file)) return;
+            var x = JsonSerializer.Deserialize<List<PersonalityProfile>>(File.ReadAllText(_file));
+            if (x is not null) _profiles.AddRange(x);
+        } catch { }
     }
 
     private void Save()
     {
-        try { Directory.CreateDirectory(Path.GetDirectoryName(_file)!);File.WriteAllText(_file,JsonSerializer.Serialize(_profiles,new JsonSerializerOptions{WriteIndented=true}));}catch{}
+        try {
+            Directory.CreateDirectory(Path.GetDirectoryName(_file)!);
+            File.WriteAllText(_file, JsonSerializer.Serialize(_profiles, new JsonSerializerOptions { WriteIndented = true }));
+        } catch { }
     }
 }
