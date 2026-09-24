@@ -44,7 +44,7 @@ public partial class SettingsWindow : Window
         _providerSettings.Provider=(AiProvider.SelectedItem as ComboBoxItem)?.Content?.ToString()??"local";_providerSettings.Endpoint=AiEndpoint.Text.Trim();_providerSettings.ApiKey=AiApiKey.Password.Trim();_providerSettings.Model=string.IsNullOrWhiteSpace(AiModel.Text)?"gpt-4o-mini":AiModel.Text.Trim();_providerSettings.SendRecentHistory=SendHistory.IsChecked==true;_providerSettings.HistoryCount=(int)Math.Round(HistoryCount.Value);_providerSettings.Save();
         _permissions.RequireConfirmationForDangerousActions=DangerousConfirmation.IsChecked==true;_permissions.AllowScreenRead=AllowScreenRead.IsChecked==true;_permissions.AllowLaunchApps=AllowLaunchApps.IsChecked==true;_permissions.AllowCloseApps=AllowCloseApps.IsChecked==true;_permissions.AllowFileRead=AllowFileRead.IsChecked==true;_permissions.AllowFileWrite=AllowFileWrite.IsChecked==true;_permissions.AllowBrowserControl=AllowBrowserControl.IsChecked==true;_permissions.AllowSystemSettings=AllowSystemSettings.IsChecked==true;_permissions.Save();
         _appearance.Scale=ScaleSlider.Value;_appearance.Opacity=OpacitySlider.Value;_appearance.AlwaysOnTop=AlwaysOnTop.IsChecked==true;_appearance.ShowSpeechBubble=ShowBubble.IsChecked==true;_appearance.Save();
-        MessageBox.Show("設定を保存したよ。","るか");
+        System.Windows.MessageBox.Show("設定を保存したよ。","るか");
     }
     private async void TestAi_Click(object sender,RoutedEventArgs e)
     {
