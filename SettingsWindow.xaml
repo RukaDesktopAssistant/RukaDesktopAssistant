@@ -76,7 +76,6 @@
                             <CheckBox x:Name="DangerousConfirmation" Content="危険な操作は必ず確認" Margin="0,12,0,6"/>
                             <TextBlock Text="対応例: アプリ起動 / URLを開く / Windows設定 / ファイル検索 / シャットダウン"/>
                         </StackPanel></GroupBox></StackPanel>
-                    </StackPanel>
                     <StackPanel x:Name="GamePage" Visibility="Collapsed">
                         <GroupBox Header="ゲーム別設定"><StackPanel Margin="12">
                             <ComboBox x:Name="GameSelector" SelectionChanged="GameSelector_SelectionChanged"/>
