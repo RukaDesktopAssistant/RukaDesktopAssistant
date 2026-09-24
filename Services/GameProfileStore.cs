@@ -19,6 +19,8 @@ public sealed class GameProfileStore
 
     public GameProfileStore() => Load();
 
+    public bool TryGet(string game, out GameProfile profile) => _profiles.TryGetValue(game, out profile!);
+
     public GameProfile Get(string game) =>
         _profiles.TryGetValue(game, out var p)
             ? p
