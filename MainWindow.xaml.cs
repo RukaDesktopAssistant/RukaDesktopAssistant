@@ -276,7 +276,7 @@ public partial class MainWindow : Window
     {
         var menu = new System.Windows.Controls.ContextMenu();
         menu.Items.Add(MenuItem("チャットを開く", (_, _) => OpenChat()));
-        menu.Items.Add(MenuItem("設定", (_, _) => new SettingsWindow().Show()));
+        menu.Items.Add(MenuItem("設定", (_, _) => OpenSettings()));
         menu.Items.Add(MenuItem("声で話す", (_, _) => Speak("ん？どうした？")));
         menu.Items.Add(MenuItem("音声入力を開始", (_, _) => StartVoice()));
         menu.Items.Add(MenuItem("音声入力を停止", (_, _) => _voiceInput.StopConversation()));
@@ -294,6 +294,30 @@ public partial class MainWindow : Window
         var item = new System.Windows.Controls.MenuItem { Header = text };
         item.Click += action;
         return item;
+    }
+
+    private void OpenSettings()
+    {
+        var window = new SettingsWindow();
+        window.SettingsSaved += ApplyRuntimeSettings;
+        window.Show();
+    }
+
+    private void ApplyRuntimeSettings()
+    {
+        _settings.Load();
+        _appearance.Load();
+        _audioStore.Load();
+        _wakeWord.WakePhrase = _audioStore.Current.WakePhrase;
+        _wakeWord.Enabled = _audioStore.Current.WakeWordEnabled;
+        _voice.Rate = _audioStore.Current.TtsRate;
+        _voice.Volume = _audioStore.Current.TtsVolume;
+        _voice.Enabled = _audioStore.Current.TtsEnabled;
+        ApplyAppearance();
+        if (_settings.AutonomousBehaviorEnabled && !_state.IsPaused) _activityScheduler.Start();
+        else _activityScheduler.Stop();
+        if (_settings.VoiceInputEnabled && !_state.IsPaused) StartVoice();
+        else _voiceInput.StopConversation();
     }
 
     private void StartVoice()
