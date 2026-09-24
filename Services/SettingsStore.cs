@@ -4,9 +4,7 @@ namespace RukaDesktopAssistant.Services;
 
 public sealed class SettingsStore
 {
-    private readonly string _file = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        "RukaDesktopAssistant", "settings.json");
+    private readonly string _file = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "RukaDesktopAssistant", "settings.json");
 
     public bool StartWithWindows { get; set; } = true;
     public bool ShowDuringGames { get; set; } = false;
@@ -17,6 +15,7 @@ public sealed class SettingsStore
     public double VoiceVolume { get; set; } = 100;
     public bool NotificationsEnabled { get; set; } = true;
     public bool AutonomousBehaviorEnabled { get; set; } = true;
+    public string ActivePersonalityName { get; set; } = "るか";
 
     public void Load()
     {
@@ -25,7 +24,6 @@ public sealed class SettingsStore
             if (!File.Exists(_file)) return;
             var data = JsonSerializer.Deserialize<SettingsStore>(File.ReadAllText(_file));
             if (data is null) return;
-
             StartWithWindows = data.StartWithWindows;
             ShowDuringGames = data.ShowDuringGames;
             DiscordWakeWordOnly = data.DiscordWakeWordOnly;
@@ -35,6 +33,7 @@ public sealed class SettingsStore
             VoiceVolume = Math.Clamp(data.VoiceVolume, 0, 100);
             NotificationsEnabled = data.NotificationsEnabled;
             AutonomousBehaviorEnabled = data.AutonomousBehaviorEnabled;
+            ActivePersonalityName = string.IsNullOrWhiteSpace(data.ActivePersonalityName) ? "るか" : data.ActivePersonalityName;
         }
         catch { }
     }
