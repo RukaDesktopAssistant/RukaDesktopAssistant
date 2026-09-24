@@ -91,7 +91,13 @@ app.MapPost("/v1/chat", async (HttpContext context, ChatRequest request, IHttpCl
 app.Run();
 
 static string NormalizeRole(string? role) =>
-    string.Equals(role, "assistant", StringComparison.OrdinalIgnoreCase) ? "assistant" : "user";
+    role?.ToLowerInvariant() switch
+    {
+        "system" => "system",
+        "developer" => "developer",
+        "assistant" => "assistant",
+        _ => "user"
+    };
 
 record ChatRequest(List<ChatMessage>? Messages);
 record ChatMessage(string? Role, string? Content);
