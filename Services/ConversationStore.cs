@@ -24,6 +24,12 @@ public sealed class ConversationStore
         Save();
     }
 
+    public void Clear()
+    {
+        _messages.Clear();
+        Save();
+    }
+
     private void Load()
     {
         try
@@ -32,7 +38,7 @@ public sealed class ConversationStore
             var data = JsonSerializer.Deserialize<List<ConversationMessage>>(File.ReadAllText(_file));
             if (data is not null) _messages.AddRange(data);
         }
-        catch { /* Corrupt history must not prevent Ruka from starting. */ }
+        catch { }
     }
 
     private void Save()
