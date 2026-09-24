@@ -12,8 +12,9 @@ public sealed class OpenAiCompatibleProvider : IAiProvider
     private readonly string _model;
     private readonly string _systemPrompt;
     private readonly int _historyCount;
+    private readonly bool _sendRecentHistory;
 
-    public OpenAiCompatibleProvider(HttpClient client, string endpoint, string apiKey, string model, string systemPrompt, int historyCount = 20)
+    public OpenAiCompatibleProvider(HttpClient client, string endpoint, string apiKey, string model, string systemPrompt, int historyCount = 20, bool sendRecentHistory = true)
     {
         _client = client;
         _endpoint = endpoint;
@@ -21,6 +22,7 @@ public sealed class OpenAiCompatibleProvider : IAiProvider
         _model = model;
         _systemPrompt = systemPrompt;
         _historyCount = Math.Clamp(historyCount, 1, 100);
+        _sendRecentHistory = sendRecentHistory;
     }
 
     public async Task<string> GenerateAsync(string userText, IReadOnlyList<string> recentHistory, CancellationToken cancellationToken = default)
@@ -32,12 +34,15 @@ public sealed class OpenAiCompatibleProvider : IAiProvider
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
 
         var messages = new List<object> { new { role = "system", content = _systemPrompt } };
-        foreach (var item in recentHistory.TakeLast(_historyCount))
+        if (_sendRecentHistory)
         {
-            var split = item.IndexOf(':');
-            if (split <= 0) continue;
-            var role = item[..split].Trim().Equals("assistant", StringComparison.OrdinalIgnoreCase) ? "assistant" : "user";
-            messages.Add(new { role, content = item[(split + 1)..].Trim() });
+            foreach (var item in recentHistory.TakeLast(_historyCount))
+            {
+                var split = item.IndexOf(':');
+                if (split <= 0) continue;
+                var role = item[..split].Trim().Equals("assistant", StringComparison.OrdinalIgnoreCase) ? "assistant" : "user";
+                messages.Add(new { role, content = item[(split + 1)..].Trim() });
+            }
         }
         messages.Add(new { role = "user", content = userText });
 
