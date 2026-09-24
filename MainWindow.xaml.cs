@@ -346,7 +346,9 @@ public partial class MainWindow : Window
 
         _chatWindow = new ChatWindow(
             _conversationStore,
-            CreateAiProvider());
+            CreateAiProvider(),
+            _memoryStore,
+            _pcActions);
 
         _chatWindow.Closed += (_, _) => _chatWindow = null;
         _chatWindow.Show();
