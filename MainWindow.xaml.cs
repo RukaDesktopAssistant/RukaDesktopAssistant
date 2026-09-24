@@ -24,6 +24,7 @@ public partial class MainWindow : Window
     private readonly VoiceInputService _voiceInput;
     private readonly ActivityScheduler _activityScheduler;
     private readonly CharacterController _character;
+    private readonly MonitorProfileStore _monitorProfiles = new();
     private readonly ShortcutService _shortcuts;
     private readonly CharacterAssetService _assets = new();
     private CharacterAnimationService? _animation;
@@ -198,6 +199,19 @@ public partial class MainWindow : Window
 
     private void RestorePosition()
     {
+        var screens = MonitorService.GetMonitors();
+        if (screens.Count > 0)
+        {
+            var target = screens.FirstOrDefault(x => _monitorProfiles.Get(x.Id).Enabled) ?? screens[0];
+            var profile = _monitorProfiles.Get(target.Id);
+            var area = target.WorkingArea;
+            if (profile.Position.Equals("bottom-right", StringComparison.OrdinalIgnoreCase))
+            {
+                Left = area.Right - Width - 40;
+                Top = area.Bottom - Height - 40;
+                return;
+            }
+        }
         var area = Forms.Screen.PrimaryScreen?.WorkingArea;
         if (area is null) return;
         var parts = _appearance.Position.Split(',', StringSplitOptions.TrimEntries);
