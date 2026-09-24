@@ -13,6 +13,7 @@ public partial class ChatWindow : Window
     private readonly MemoryStore _memory;
     private readonly PcActionService? _pcActions;
     private readonly Action<string>? _speak;
+    private readonly ExtensionManager _extensions = new();
 
     public ChatWindow() : this(new ConversationStore(), new LocalAiProvider(), new MemoryStore(), null, null) { }
     public ChatWindow(ConversationStore store) : this(store, new LocalAiProvider(), new MemoryStore(), null, null) { }
@@ -60,6 +61,9 @@ public partial class ChatWindow : Window
                 var actionReply = await _pcActions.TryHandleAsync(text, ConfirmDangerousActionAsync);
                 if (!string.IsNullOrWhiteSpace(actionReply)) { Reply(actionReply); return; }
             }
+
+            var extensionReply = await _extensions.TryHandleAsync(text);
+            if (!string.IsNullOrWhiteSpace(extensionReply)) { Reply(extensionReply); return; }
 
             var history = _store.Messages.TakeLast(20).Select(m => $"{m.Role}: {m.Text}").ToArray();
             var reply = await _ai.ReplyAsync(text, history);
