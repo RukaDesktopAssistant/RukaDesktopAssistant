@@ -1,101 +1,134 @@
 <Window x:Class="RukaDesktopAssistant.SettingsWindow" Title="Ruka 設定"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    Width="960" Height="680" MinWidth="820" MinHeight="560">
+    Width="980" Height="680" MinWidth="820" MinHeight="560">
     <Grid>
         <Grid.ColumnDefinitions><ColumnDefinition Width="220"/><ColumnDefinition/></Grid.ColumnDefinitions>
-        <Border Grid.Column="0" BorderBrush="#22000000" BorderThickness="0,0,1,0">
-            <ListBox x:Name="Navigation" SelectionChanged="Navigation_SelectionChanged">
-                <ListBoxItem Content="システム"/><ListBoxItem Content="外観"/><ListBoxItem Content="会話"/>
-                <ListBoxItem Content="音声"/><ListBoxItem Content="AI"/><ListBoxItem Content="記憶"/>
-                <ListBoxItem Content="PC操作"/><ListBoxItem Content="ゲーム"/><ListBoxItem Content="通知"/>
-                <ListBoxItem Content="キャラクター"/><ListBoxItem Content="権限"/><ListBoxItem Content="ショートカット"/>
-            </ListBox>
+        <Border Grid.Column="0" BorderBrush="#22000000" BorderThickness="0,0,1,0" Padding="10">
+            <StackPanel>
+                <TextBlock Text="るか" FontSize="25" FontWeight="SemiBold" Margin="12,8,12,18"/>
+                <ListBox x:Name="Navigation" SelectionChanged="Navigation_SelectionChanged">
+                    <ListBoxItem Content="システム"/><ListBoxItem Content="外観"/><ListBoxItem Content="会話"/>
+                    <ListBoxItem Content="音声"/><ListBoxItem Content="AI"/><ListBoxItem Content="記憶"/>
+                    <ListBoxItem Content="PC操作"/><ListBoxItem Content="ゲーム"/><ListBoxItem Content="通知"/>
+                    <ListBoxItem Content="キャラクター"/><ListBoxItem Content="権限"/><ListBoxItem Content="ショートカット"/>
+                </ListBox>
+            </StackPanel>
         </Border>
-        <ScrollViewer Grid.Column="1" Padding="32">
+        <ScrollViewer Grid.Column="1" Padding="34">
             <StackPanel>
                 <TextBlock x:Name="PageTitle" FontSize="28" FontWeight="SemiBold"/>
                 <TextBlock x:Name="PageDescription" Margin="0,8,0,24" TextWrapping="Wrap"/>
-
-                <StackPanel x:Name="SystemPage">
-                    <GroupBox Header="基本動作"><StackPanel Margin="12">
-                        <CheckBox x:Name="StartWithWindows" Content="Windows起動時にるかを起動する" Margin="0,8"/>
-                        <CheckBox x:Name="ShowDuringGames" Content="ゲーム中もるかを表示する" Margin="0,8"/>
-                        <CheckBox x:Name="DiscordWakeWordOnly" Content="通話中はウェイクワード待機にする" Margin="0,8"/>
-                        <CheckBox x:Name="AutonomousBehavior" Content="自律行動を有効にする" Margin="0,8"/>
-                        <CheckBox x:Name="DangerousConfirmation" Content="危険なPC操作は必ず確認する" Margin="0,8"/>
-                    </StackPanel></GroupBox>
-                </StackPanel>
-
-                <StackPanel x:Name="AppearancePage" Visibility="Collapsed"><GroupBox Header="外観"><StackPanel Margin="12">
-                    <TextBlock Text="キャラクターサイズ"/><Slider x:Name="ScaleSlider" Minimum=".5" Maximum="2" TickFrequency=".1" IsSnapToTickEnabled="True"/>
-                    <TextBlock x:Name="ScaleValue"/><TextBlock Text="透明度" Margin="0,12,0,0"/>
-                    <Slider x:Name="OpacitySlider" Minimum=".2" Maximum="1" TickFrequency=".05" IsSnapToTickEnabled="True"/><TextBlock x:Name="OpacityValue"/>
-                </StackPanel></GroupBox></StackPanel>
-
-                <StackPanel x:Name="ConversationPage" Visibility="Collapsed"><GroupBox Header="会話履歴"><StackPanel Margin="12">
-                    <TextBlock Text="会話履歴は長期記憶とは別に保存されます。" TextWrapping="Wrap"/>
-                    <Button Content="会話履歴をすべて削除" Width="190" HorizontalAlignment="Left" Margin="0,14,0,0" Click="ClearHistory_Click"/>
-                </StackPanel></GroupBox></StackPanel>
-
-                <StackPanel x:Name="VoicePage" Visibility="Collapsed"><GroupBox Header="音声"><StackPanel Margin="12">
-                    <CheckBox x:Name="VoiceInputEnabled" Content="音声入力を有効にする" Margin="0,6"/>
-                    <CheckBox x:Name="WakeEnabled" Content="ウェイクワードを有効にする" Margin="0,6"/>
-                    <TextBlock Text="ウェイクワード"/><TextBox x:Name="WakePhrase" Margin="0,4,0,8"/>
-                    <CheckBox x:Name="TtsEnabled" Content="音声合成を有効にする" Margin="0,6"/>
-                    <TextBlock Text="音声速度"/><Slider x:Name="VoiceRate" Minimum="-10" Maximum="10" TickFrequency="1" IsSnapToTickEnabled="True"/>
-                    <TextBlock Text="音量"/><Slider x:Name="VoiceVolume" Minimum="0" Maximum="100" TickFrequency="5" IsSnapToTickEnabled="True"/>
-                </StackPanel></GroupBox></StackPanel>
-
-                <StackPanel x:Name="AiPage" Visibility="Collapsed"><GroupBox Header="AI接続"><StackPanel Margin="12">
-                    <TextBlock Text="プロバイダー"/><ComboBox x:Name="AiProvider"><ComboBoxItem Content="local"/><ComboBoxItem Content="openai"/><ComboBoxItem Content="http"/></ComboBox>
-                    <TextBlock Text="APIキー" Margin="0,10,0,0"/><TextBox x:Name="AiApiKey"/>
-                    <TextBlock Text="APIエンドポイント" Margin="0,10,0,0"/><TextBox x:Name="AiEndpoint"/>
-                    <TextBlock Text="モデル" Margin="0,10,0,0"/><TextBox x:Name="AiModel"/>
-                    <CheckBox x:Name="SendHistory" Content="直近の会話履歴を送信する" Margin="0,8"/>
-                    <TextBlock Text="履歴件数"/><Slider x:Name="HistoryCount" Minimum="1" Maximum="100" TickFrequency="1" IsSnapToTickEnabled="True"/>
-                    <Button Content="AI接続テスト（実際に1回送信）" Margin="0,12,0,0" Padding="10,6" Click="TestAi_Click"/>
-                </StackPanel></GroupBox></StackPanel>
-
-                <StackPanel x:Name="MemoryPage" Visibility="Collapsed"><GroupBox Header="長期記憶"><StackPanel Margin="12">
-                    <ListBox x:Name="MemoryList" MinHeight="150"/><Button Content="選択した記憶を削除" Width="180" HorizontalAlignment="Left" Margin="0,8" Click="DeleteMemory_Click"/>
-                    <TextBox x:Name="MemoryInput" Margin="0,8,0,0"/><Button Content="記憶を追加" Width="120" HorizontalAlignment="Left" Margin="0,8" Click="AddMemory_Click"/>
-                </StackPanel></GroupBox></StackPanel>
-
-                <StackPanel x:Name="PcPage" Visibility="Collapsed"><GroupBox Header="PC操作"><StackPanel Margin="12">
-                    <TextBlock Text="るかは自然文の命令から、許可された範囲だけPC操作を実行します。" TextWrapping="Wrap"/>
-                    <TextBlock Text="危険操作は確認ダイアログを通します。" Margin="0,8,0,0"/>
-                </StackPanel></GroupBox></StackPanel>
-
-                <StackPanel x:Name="GamePage" Visibility="Collapsed"><GroupBox Header="ゲームごとの設定"><StackPanel Margin="12">
-                    <ComboBox x:Name="GameName" IsEditable="True"><ComboBoxItem Content="RobloxPlayerBeta"/><ComboBoxItem Content="FortniteClient-Win64-Shipping"/><ComboBoxItem Content="VALORANT-Win64-Shipping"/><ComboBoxItem Content="r5apex"/><ComboBoxItem Content="Minecraft"/></ComboBox>
-                    <CheckBox x:Name="GameShow" Content="キャラクターを表示" Margin="0,8"/><CheckBox x:Name="GameMoveSide" Content="画面端へ移動" Margin="0,8"/><CheckBox x:Name="GameVoice" Content="音声反応を許可" Margin="0,8"/>
-                    <TextBlock Text="サイズ"/><Slider x:Name="GameScale" Minimum=".5" Maximum="2" TickFrequency=".1" IsSnapToTickEnabled="True"/>
-                    <Button Content="このゲーム設定を保存" Width="180" HorizontalAlignment="Left" Margin="0,10" Click="SaveGame_Click"/>
-                </StackPanel></GroupBox></StackPanel>
-
-                <StackPanel x:Name="NotificationPage" Visibility="Collapsed"><GroupBox Header="通知"><StackPanel Margin="12">
-                    <CheckBox x:Name="NotificationsEnabled" Content="通知を有効にする" Margin="0,6"/>
-                    <TextBlock Text="現在は安全なフォールバック通知を使用します。" Margin="0,8" TextWrapping="Wrap"/>
-                </StackPanel></GroupBox></StackPanel>
-
-                <StackPanel x:Name="CharacterPage" Visibility="Collapsed"><GroupBox Header="キャラクター"><StackPanel Margin="12">
-                    <TextBlock Text="ruka-idle.png / talk / sleep / walk-1 / walk-2 をAssetsに置くと自動的に使用します。" TextWrapping="Wrap"/>
-                    <TextBlock Text="将来Live2Dへ差し替えられるアセット構造になっています。" Margin="0,8" TextWrapping="Wrap"/>
-                </StackPanel></GroupBox></StackPanel>
-
-                <StackPanel x:Name="PermissionPage" Visibility="Collapsed"><GroupBox Header="権限"><StackPanel Margin="12">
-                    <CheckBox x:Name="AllowScreenRead" Content="画面・アプリ状態の読み取り" Margin="0,6"/><CheckBox x:Name="AllowLaunchApps" Content="アプリ起動" Margin="0,6"/>
-                    <CheckBox x:Name="AllowCloseApps" Content="アプリ終了" Margin="0,6"/><CheckBox x:Name="AllowFileRead" Content="ファイル読み取り" Margin="0,6"/>
-                    <CheckBox x:Name="AllowFileWrite" Content="ファイル変更" Margin="0,6"/><CheckBox x:Name="AllowBrowserControl" Content="ブラウザ操作" Margin="0,6"/>
-                    <CheckBox x:Name="AllowSystemSettings" Content="Windows設定・システム操作" Margin="0,6"/>
-                </StackPanel></GroupBox></StackPanel>
-
-                <StackPanel x:Name="ShortcutPage" Visibility="Collapsed"><GroupBox Header="ショートカット"><StackPanel Margin="12">
-                    <TextBlock Text="F12：待機 / 再開"/><TextBlock Text="Ctrl + Alt + R：チャット"/><TextBlock Text="Ctrl + Alt + Esc：緊急停止" Margin="0,6"/>
-                </StackPanel></GroupBox></StackPanel>
-
-                <Button Content="設定を保存" Width="140" HorizontalAlignment="Right" Padding="12,8" Margin="0,20,0,0" Click="Save_Click"/>
+                <Grid x:Name="Pages">
+                    <StackPanel x:Name="SystemPage">
+                        <GroupBox Header="起動と自律動作"><StackPanel Margin="12">
+                            <CheckBox x:Name="StartWithWindows" Content="Windows起動時にるかを起動" Margin="0,7"/>
+                            <CheckBox x:Name="AutonomousBehavior" Content="自律行動を有効にする" Margin="0,7"/>
+                            <CheckBox x:Name="ShowDuringGames" Content="ゲーム中も表示する（ゲーム設定を優先）" Margin="0,7"/>
+                            <CheckBox x:Name="DiscordWakeWordOnly" Content="Discord通話中はウェイクワード待機にする" Margin="0,7"/>
+                        </StackPanel></GroupBox>
+                    </StackPanel>
+                    <StackPanel x:Name="AppearancePage" Visibility="Collapsed">
+                        <GroupBox Header="外観"><StackPanel Margin="12">
+                            <TextBlock Text="サイズ"/><Slider x:Name="ScaleSlider" Minimum=".5" Maximum="2" TickFrequency=".1" IsSnapToTickEnabled="True"/><TextBlock x:Name="ScaleValue"/>
+                            <TextBlock Text="透明度" Margin="0,15,0,0"/><Slider x:Name="OpacitySlider" Minimum=".2" Maximum="1" TickFrequency=".05" IsSnapToTickEnabled="True"/><TextBlock x:Name="OpacityValue"/>
+                            <CheckBox x:Name="AlwaysOnTop" Content="常に最前面" Margin="0,12,0,5"/>
+                            <CheckBox x:Name="ShowBubble" Content="吹き出しを表示" Margin="0,5"/>
+                        </StackPanel></GroupBox>
+                    </StackPanel>
+                    <StackPanel x:Name="ConversationPage" Visibility="Collapsed">
+                        <GroupBox Header="会話履歴"><StackPanel Margin="12">
+                            <TextBlock Text="会話履歴はAIの履歴と長期記憶を分離して保存します。" TextWrapping="Wrap" Margin="0,0,0,12"/>
+                            <Button Content="会話履歴を全削除" Click="ClearConversation_Click" Width="180" HorizontalAlignment="Left"/>
+                        </StackPanel></GroupBox>
+                    </StackPanel>
+                    <StackPanel x:Name="VoicePage" Visibility="Collapsed">
+                        <GroupBox Header="音声"><StackPanel Margin="12">
+                            <CheckBox x:Name="VoiceInputEnabled" Content="音声入力を有効にする" Margin="0,6"/>
+                            <CheckBox x:Name="WakeEnabled" Content="ウェイクワードを有効にする" Margin="0,6"/>
+                            <TextBlock Text="ウェイクワード"/><TextBox x:Name="WakePhrase" Margin="0,4,0,10"/>
+                            <CheckBox x:Name="TtsEnabled" Content="音声合成を有効にする" Margin="0,6"/>
+                            <TextBlock Text="速度"/><Slider x:Name="VoiceRate" Minimum="-10" Maximum="10" TickFrequency="1" IsSnapToTickEnabled="True"/>
+                            <TextBlock Text="音量" Margin="0,8,0,0"/><Slider x:Name="VoiceVolume" Minimum="0" Maximum="100" TickFrequency="5" IsSnapToTickEnabled="True"/>
+                        </StackPanel></GroupBox>
+                    </StackPanel>
+                    <StackPanel x:Name="AiPage" Visibility="Collapsed">
+                        <GroupBox Header="AI接続"><StackPanel Margin="12">
+                            <TextBlock Text="プロバイダー"/><ComboBox x:Name="AiProvider"><ComboBoxItem Content="local"/><ComboBoxItem Content="openai"/><ComboBoxItem Content="http"/></ComboBox>
+                            <TextBlock Text="APIキー" Margin="0,10,0,0"/><PasswordBox x:Name="AiApiKey" Margin="0,4"/>
+                            <TextBlock Text="エンドポイント"/><TextBox x:Name="AiEndpoint" Margin="0,4"/>
+                            <TextBlock Text="モデル"/><TextBox x:Name="AiModel" Margin="0,4"/>
+                            <CheckBox x:Name="SendHistory" Content="直近の会話履歴を送信" Margin="0,8"/>
+                            <TextBlock Text="履歴件数"/><Slider x:Name="HistoryCount" Minimum="1" Maximum="100" TickFrequency="1" IsSnapToTickEnabled="True"/>
+                            <Button Content="実際にAPIへ送信して接続テスト" Click="TestAi_Click" Margin="0,12,0,0" Padding="10,7"/>
+                            <TextBlock Text="※ openai はOpenAI互換の /v1/chat/completions 形式に対応。APIキーはローカル設定に保存されます。" FontSize="12" Opacity=".7" Margin="0,10,0,0" TextWrapping="Wrap"/>
+                        </StackPanel></GroupBox></StackPanel>
+                    </StackPanel>
+                    <StackPanel x:Name="MemoryPage" Visibility="Collapsed">
+                        <GroupBox Header="長期記憶"><StackPanel Margin="12">
+                            <ListBox x:Name="MemoryList" Height="240"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,10,0,0"><TextBox x:Name="MemoryInput" Width="420"/><Button Content="追加" Click="AddMemory_Click" Margin="8,0,0,0"/></StackPanel>
+                            <Button Content="長期記憶を全削除" Click="ClearMemory_Click" Width="180" HorizontalAlignment="Left" Margin="0,10,0,0"/>
+                            <TextBlock Text="「覚えて」と明示された内容だけがここに保存されます。" FontSize="12" Opacity=".7" Margin="0,10,0,0"/>
+                        </StackPanel></GroupBox></StackPanel>
+                    </StackPanel>
+                    <StackPanel x:Name="PcPage" Visibility="Collapsed">
+                        <GroupBox Header="PC操作"><StackPanel Margin="12">
+                            <TextBlock Text="明示的に依頼された操作だけを実行します。危険操作は確認します。" TextWrapping="Wrap"/>
+                            <CheckBox x:Name="DangerousConfirmation" Content="危険な操作は必ず確認" Margin="0,12,0,6"/>
+                            <TextBlock Text="対応例: アプリ起動 / URLを開く / Windows設定 / ファイル検索 / シャットダウン"/>
+                        </StackPanel></GroupBox></StackPanel>
+                    </StackPanel>
+                    <StackPanel x:Name="GamePage" Visibility="Collapsed">
+                        <GroupBox Header="ゲーム別設定"><StackPanel Margin="12">
+                            <ComboBox x:Name="GameSelector" SelectionChanged="GameSelector_SelectionChanged"/>
+                            <CheckBox x:Name="GameShow" Content="このゲームでは表示" Margin="0,10,0,5"/>
+                            <CheckBox x:Name="GameMoveSide" Content="画面端へ退避" Margin="0,5"/>
+                            <CheckBox x:Name="GameVoice" Content="音声反応を許可" Margin="0,5"/>
+                            <TextBlock Text="サイズ" Margin="0,10,0,0"/><Slider x:Name="GameScale" Minimum=".5" Maximum="2" TickFrequency=".1" IsSnapToTickEnabled="True"/>
+                            <Button Content="このゲームの設定を保存" Click="SaveGame_Click" Width="200" HorizontalAlignment="Left" Margin="0,12,0,0"/>
+                        </StackPanel></GroupBox></StackPanel>
+                    </StackPanel>
+                    <StackPanel x:Name="NotificationPage" Visibility="Collapsed">
+                        <GroupBox Header="通知"><StackPanel Margin="12">
+                            <CheckBox x:Name="NotificationsEnabled" Content="通知を有効にする" Margin="0,6"/>
+                            <TextBlock Text="現在は安全なフォールバック通知を使用します。" Margin="0,8,0,0"/>
+                        </StackPanel></GroupBox></StackPanel>
+                    </StackPanel>
+                    <StackPanel x:Name="CharacterPage" Visibility="Collapsed">
+                        <GroupBox Header="キャラクター"><StackPanel Margin="12">
+                            <TextBlock Text="現在のモデル: Ruka 2D / PNG・WebPアセット方式"/>
+                            <TextBlock Text="Assets/ruka-idle.png 等を置くと実画像が自動使用されます。" Margin="0,8,0,0" TextWrapping="Wrap"/>
+                            <CheckBox x:Name="CharacterAlwaysTop" Content="常に最前面" Margin="0,12,0,5"/>
+                        </StackPanel></GroupBox>
+                        <GroupBox Header="性格プリセット" Margin="0,15,0,0"><StackPanel Margin="12">
+                            <ComboBox x:Name="PersonalitySelector" SelectionChanged="PersonalitySelector_SelectionChanged"/>
+                            <TextBox x:Name="PersonalityName" Margin="0,8" />
+                            <TextBox x:Name="PersonalityPrompt" Height="90" TextWrapping="Wrap" AcceptsReturn="True"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,8,0,0"><TextBox x:Name="PersonalityFirstPerson" Width="120"/><TextBox x:Name="PersonalityStyle" Width="200" Margin="8,0,0,0"/></StackPanel>
+                            <Button Content="性格を保存" Click="SavePersonality_Click" Width="140" HorizontalAlignment="Left" Margin="0,8,0,0"/>
+                        </StackPanel></GroupBox>
+                    </StackPanel>
+                    <StackPanel x:Name="PermissionPage" Visibility="Collapsed">
+                        <GroupBox Header="権限"><StackPanel Margin="12">
+                            <CheckBox x:Name="AllowScreenRead" Content="画面・アプリ状態の読み取り" Margin="0,6"/>
+                            <CheckBox x:Name="AllowLaunchApps" Content="アプリ起動" Margin="0,6"/>
+                            <CheckBox x:Name="AllowCloseApps" Content="アプリ終了" Margin="0,6"/>
+                            <CheckBox x:Name="AllowFileRead" Content="ファイル読み取り" Margin="0,6"/>
+                            <CheckBox x:Name="AllowFileWrite" Content="ファイル変更" Margin="0,6"/>
+                            <CheckBox x:Name="AllowBrowserControl" Content="ブラウザ操作" Margin="0,6"/>
+                            <CheckBox x:Name="AllowSystemSettings" Content="Windows設定・システム操作" Margin="0,6"/>
+                        </StackPanel></GroupBox></StackPanel>
+                    </StackPanel>
+                    <StackPanel x:Name="ShortcutPage" Visibility="Collapsed">
+                        <GroupBox Header="ショートカット"><StackPanel Margin="12">
+                            <TextBlock Text="F12 — るかを待機 / 再開" Margin="0,5"/>
+                            <TextBlock Text="Ctrl + Alt + R — チャットを開く" Margin="0,5"/>
+                            <TextBlock Text="Ctrl + Alt + Esc — 緊急停止" Margin="0,5"/>
+                            <TextBlock Text="キャラクターをダブルクリック — チャット" Margin="0,5"/>
+                        </StackPanel></GroupBox></StackPanel>
+                </Grid>
+                <Button Content="設定を保存" Width="150" HorizontalAlignment="Right" Padding="12,8" Margin="0,22,0,0" Click="Save_Click"/>
             </StackPanel>
         </ScrollViewer>
     </Grid>
