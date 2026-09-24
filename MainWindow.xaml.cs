@@ -312,7 +312,7 @@ public partial class MainWindow : Window
 
         var systemPrompt = $"""
         {personality.SystemPrompt}
-        名前: {personality.DisplayName}
+        名前: {personality.Name}
         一人称: {personality.FirstPerson}
         話し方: {personality.SpeechStyle}
         {memory}
