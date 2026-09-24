@@ -8,6 +8,7 @@ namespace RukaDesktopAssistant;
 
 public partial class SettingsWindow : Window
 {
+    public event Action? SettingsSaved;
     private readonly PermissionManager _permissions = new();
     private readonly SettingsStore _settings = new();
     private readonly AppearanceSettings _appearance = new();
@@ -45,6 +46,7 @@ public partial class SettingsWindow : Window
         _permissions.RequireConfirmationForDangerousActions=DangerousConfirmation.IsChecked==true;_permissions.AllowScreenRead=AllowScreenRead.IsChecked==true;_permissions.AllowLaunchApps=AllowLaunchApps.IsChecked==true;_permissions.AllowCloseApps=AllowCloseApps.IsChecked==true;_permissions.AllowFileRead=AllowFileRead.IsChecked==true;_permissions.AllowFileWrite=AllowFileWrite.IsChecked==true;_permissions.AllowBrowserControl=AllowBrowserControl.IsChecked==true;_permissions.AllowSystemSettings=AllowSystemSettings.IsChecked==true;_permissions.Save();
         _appearance.Scale=ScaleSlider.Value;_appearance.Opacity=OpacitySlider.Value;_appearance.AlwaysOnTop=AlwaysOnTop.IsChecked==true;_appearance.ShowSpeechBubble=ShowBubble.IsChecked==true;_appearance.Save();
         System.Windows.MessageBox.Show("設定を保存したよ。","るか");
+        SettingsSaved?.Invoke();
     }
     private async void TestAi_Click(object sender,RoutedEventArgs e)
     {
