@@ -30,5 +30,18 @@ Ruka lives on the Windows desktop as a lightweight 2D character rather than a no
 9. Granular PC permissions and safe operations
 10. Packaging and installer
 
-## Repository status
-The repository is being built incrementally. Early commits focus on a clean, testable desktop shell before adding AI and PC-control features.
+## Current status (v0.1.1)
+The Windows desktop shell is buildable through GitHub Actions and can be published as a self-contained win-x64 EXE or portable ZIP.
+
+Implemented now:
+- Transparent 2D desktop character with drag, double-click chat, idle/walk/sleep behavior
+- Persistent conversation history and explicit long-term memory
+- Japanese wake-word voice input and Windows TTS
+- OpenAI-compatible and generic HTTP AI providers with configurable history and encrypted API-key storage
+- Personality presets and per-game behavior profiles
+- Multi-monitor profiles and game-side positioning
+- Permissioned PC actions with confirmation for dangerous operations
+- Global shortcuts, pause/resume, and emergency stop
+- Windows startup registration and diagnostics
+
+The built-in local provider is intentionally a lightweight offline fallback; full natural-language AI requires a configured compatible provider or local AI server.
