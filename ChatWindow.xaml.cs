@@ -12,24 +12,19 @@ public partial class ChatWindow : Window
     private readonly SemaphoreSlim _replyLock = new(1, 1);
     private readonly MemoryStore _memory;
     private readonly PcActionService? _pcActions;
+    private readonly Action<string>? _speak;
 
-    public ChatWindow()
-        : this(new ConversationStore(), new LocalAiProvider(), new MemoryStore(), null) { }
+    public ChatWindow() : this(new ConversationStore(), new LocalAiProvider(), new MemoryStore(), null, null) { }
+    public ChatWindow(ConversationStore store) : this(store, new LocalAiProvider(), new MemoryStore(), null, null) { }
 
-    public ChatWindow(ConversationStore store)
-        : this(store, new LocalAiProvider(), new MemoryStore(), null) { }
-
-    public ChatWindow(
-        ConversationStore store,
-        IAiProvider provider,
-        MemoryStore? memory = null,
-        PcActionService? pcActions = null)
+    public ChatWindow(ConversationStore store, IAiProvider provider, MemoryStore? memory = null, PcActionService? pcActions = null, Action<string>? speak = null)
     {
         InitializeComponent();
         _store = store;
         _ai = new AiConversationService(provider);
         _memory = memory ?? new MemoryStore();
         _pcActions = pcActions;
+        _speak = speak;
         Loaded += (_, _) => LoadHistory();
         Input.Focus();
     }
@@ -49,112 +44,72 @@ public partial class ChatWindow : Window
     private async void Send_Click(object sender, RoutedEventArgs e)
     {
         if (!await _replyLock.WaitAsync(0)) return;
-
         try
         {
             var text = Input.Text.Trim();
             if (text.Length == 0) return;
-
             _store.Add("user", text);
             AddMessage("あなた", text);
             Input.Clear();
 
             var memoryCommand = TryHandleMemoryCommand(text);
-            if (memoryCommand is not null)
-            {
-                _store.Add("assistant", memoryCommand);
-                AddMessage("るか", memoryCommand);
-                return;
-            }
+            if (memoryCommand is not null) { Reply(memoryCommand); return; }
 
             if (_pcActions is not null)
             {
                 var actionReply = await _pcActions.TryHandleAsync(text, ConfirmDangerousActionAsync);
-                if (!string.IsNullOrWhiteSpace(actionReply))
-                {
-                    _store.Add("assistant", actionReply);
-                    AddMessage("るか", actionReply);
-                    return;
-                }
+                if (!string.IsNullOrWhiteSpace(actionReply)) { Reply(actionReply); return; }
             }
 
-            var history = _store.Messages
-                .TakeLast(20)
-                .Select(m => $"{m.Role}: {m.Text}")
-                .ToArray();
-
+            var history = _store.Messages.TakeLast(20).Select(m => $"{m.Role}: {m.Text}").ToArray();
             var reply = await _ai.ReplyAsync(text, history);
-            _store.Add("assistant", reply);
-            AddMessage("るか", reply);
+            Reply(reply);
         }
         catch (Exception ex)
         {
-            var reply = $"ごめん、返答中にエラーが起きたよ。{ex.Message}";
-            _store.Add("assistant", reply);
-            AddMessage("るか", reply);
+            Reply($"ごめん、返答中にエラーが起きたよ。{ex.Message}");
         }
-        finally
-        {
-            _replyLock.Release();
-        }
+        finally { _replyLock.Release(); }
+    }
+
+    private void Reply(string reply)
+    {
+        _store.Add("assistant", reply);
+        AddMessage("るか", reply);
+        _speak?.Invoke(reply);
     }
 
     private string? TryHandleMemoryCommand(string text)
     {
         var normalized = text.Trim();
-
         if (normalized.StartsWith("覚えて", StringComparison.OrdinalIgnoreCase))
         {
-            var memoryText = normalized["覚えて".Length..]
-                .Trim(' ', '　', '、', '。', '！', '!');
-            if (string.IsNullOrWhiteSpace(memoryText))
-                return "もちろん。覚えてほしい内容を続けて教えてね。";
-
-            _memory.Remember(memoryText);
-            return $"覚えておくね。「{memoryText}」";
+            var value = normalized["覚えて".Length..].Trim(' ', '　', '、', '。', '！', '!');
+            if (value.Length == 0) return "もちろん。覚えてほしい内容を続けて教えてね。";
+            _memory.Remember(value);
+            return $"覚えておくね。「{value}」";
         }
-
         if (normalized.StartsWith("忘れて", StringComparison.OrdinalIgnoreCase))
         {
-            var memoryText = normalized["忘れて".Length..]
-                .Trim(' ', '　', '、', '。', '！', '!');
-            if (string.IsNullOrWhiteSpace(memoryText))
-                return "どの記憶を忘れればいい？";
-
-            _memory.Forget(memoryText);
-            return $"その内容は長期記憶から外したよ。「{memoryText}」";
+            var value = normalized["忘れて".Length..].Trim(' ', '　', '、', '。', '！', '!');
+            if (value.Length == 0) return "どの記憶を忘れればいい？";
+            _memory.Forget(value);
+            return $"その内容は長期記憶から外したよ。「{value}」";
         }
-
         if (normalized is "覚えていること" or "何を覚えてる？" or "何を覚えている？")
-        {
-            if (_memory.Memories.Count == 0)
-                return "今は長期記憶に保存していることはないよ。";
-
-            return "今保存している長期記憶はこれだよ：\n" +
-                   string.Join("\n", _memory.Memories.Select(x => "・" + x));
-        }
-
+            return _memory.Memories.Count == 0 ? "今は長期記憶に保存していることはないよ。" : "今保存している長期記憶はこれだよ：\n" + string.Join("\n", _memory.Memories.Select(x => "・" + x));
         return null;
     }
 
     private Task<bool> ConfirmDangerousActionAsync(string description)
     {
-        var result = System.Windows.MessageBox.Show(
-            description + "\n\n実行していい？",
-            "るか — 操作の確認",
-            MessageBoxButton.YesNo,
-            MessageBoxImage.Warning);
+        var result = MessageBox.Show(description + "\n\n実行していい？", "るか — 操作の確認", MessageBoxButton.YesNo, MessageBoxImage.Warning);
         return Task.FromResult(result == MessageBoxResult.Yes);
     }
 
     private void AddMessage(string speaker, string text)
     {
-        Messages.Children.Add(new TextBlock
-        {
-            Text = $"{speaker}: {text}",
-            Margin = new Thickness(0, 6, 0, 6),
-            TextWrapping = TextWrapping.Wrap
-        });
+        Messages.Children.Add(new TextBlock { Text = $"{speaker}: {text}", Margin = new Thickness(0, 6, 0, 6), TextWrapping = TextWrapping.Wrap });
         History.ScrollToEnd();
     }
 }
