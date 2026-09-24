@@ -63,7 +63,6 @@
                             <Button Content="実際にAPIへ送信して接続テスト" Click="TestAi_Click" Margin="0,12,0,0" Padding="10,7"/>
                             <TextBlock Text="※ openai はOpenAI互換の /v1/chat/completions 形式に対応。APIキーはローカル設定に保存されます。" FontSize="12" Opacity=".7" Margin="0,10,0,0" TextWrapping="Wrap"/>
                         </StackPanel></GroupBox></StackPanel>
-                    </StackPanel>
                     <StackPanel x:Name="MemoryPage" Visibility="Collapsed">
                         <GroupBox Header="長期記憶"><StackPanel Margin="12">
                             <ListBox x:Name="MemoryList" Height="240"/>
