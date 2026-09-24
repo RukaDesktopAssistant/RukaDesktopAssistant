@@ -10,7 +10,7 @@ public sealed class ActivityScheduler
     private readonly Action<string> _say;
     private readonly CharacterController _character;
     private readonly Random _random = new();
-    private readonly GameProfileStore _gameProfiles = new();
+    private readonly GameProfileStore _gameProfiles;
     private DateTime _lastActivityChange = DateTime.MinValue;
 
     public bool IsGameSuppressed { get; private set; }
@@ -19,11 +19,12 @@ public sealed class ActivityScheduler
     public event Action<AppContextInfo, GameProfile>? ContextChanged;
     public event Action<string>? ActivityChanged;
 
-    public ActivityScheduler(RukaState state, Action<string> say, CharacterController character)
+    public ActivityScheduler(RukaState state, Action<string> say, CharacterController character, GameProfileStore? gameProfiles = null)
     {
         _state = state;
         _say = say;
         _character = character;
+        _gameProfiles = gameProfiles ?? new GameProfileStore();
         _timer.Tick += (_, _) => Tick();
     }
 
