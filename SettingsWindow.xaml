@@ -140,7 +140,8 @@
                             <TextBlock Text="Ctrl + Alt + R — チャットを開く" Margin="0,5"/>
                             <TextBlock Text="Ctrl + Alt + Esc — 緊急停止" Margin="0,5"/>
                             <TextBlock Text="キャラクターをダブルクリック — チャット" Margin="0,5"/>
-                        </StackPanel></GroupBox></StackPanel>
+                        </StackPanel></GroupBox>
+                    </StackPanel>
                 </Grid>
                 <Button Content="設定を保存" Width="150" HorizontalAlignment="Right" Padding="12,8" Margin="0,22,0,0" Click="Save_Click"/>
             </StackPanel>
