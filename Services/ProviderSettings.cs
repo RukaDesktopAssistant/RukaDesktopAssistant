@@ -8,7 +8,9 @@ public sealed class ProviderSettings
 {
     private readonly string _file = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "RukaDesktopAssistant", "ai.json");
 
-    public string Provider { get; set; } = "local";
+    public string Provider { get; set; } = "ruka";
+    public string RukaEndpoint { get; set; } = "https://ruka-ai.example.com/v1/chat";
+    public string InstallationId { get; set; } = Guid.NewGuid().ToString("N");
     public string Endpoint { get; set; } = "https://api.openai.com/v1/chat/completions";
     public string ApiKey { get; set; } = "";
     public string Model { get; set; } = "gpt-4o-mini";
@@ -22,7 +24,9 @@ public sealed class ProviderSettings
             if (!File.Exists(_file)) return;
             var data = JsonSerializer.Deserialize<ProviderSettings>(File.ReadAllText(_file));
             if (data is null) return;
-            Provider = string.IsNullOrWhiteSpace(data.Provider) ? "local" : data.Provider;
+            Provider = string.IsNullOrWhiteSpace(data.Provider) ? "ruka" : data.Provider;
+            RukaEndpoint = string.IsNullOrWhiteSpace(data.RukaEndpoint) ? "https://ruka-ai.example.com/v1/chat" : data.RukaEndpoint;
+            InstallationId = string.IsNullOrWhiteSpace(data.InstallationId) ? Guid.NewGuid().ToString("N") : data.InstallationId;
             Endpoint = string.IsNullOrWhiteSpace(data.Endpoint) ? "https://api.openai.com/v1/chat/completions" : data.Endpoint;
             ApiKey = Unprotect(data.ApiKey ?? "");
             Model = string.IsNullOrWhiteSpace(data.Model) ? "gpt-4o-mini" : data.Model;
@@ -40,6 +44,8 @@ public sealed class ProviderSettings
             var copy = new ProviderSettings
             {
                 Provider = Provider,
+                RukaEndpoint = RukaEndpoint,
+                InstallationId = InstallationId,
                 Endpoint = Endpoint,
                 ApiKey = Protect(ApiKey ?? ""),
                 Model = Model,
