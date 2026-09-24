@@ -127,7 +127,7 @@ public partial class MainWindow : Window
 
         _animation?.SetState(activity);
         if (activity == "walk" && !_state.IsPaused)
-            _character.Wander(TimeSpan.FromSeconds(2.5));
+            _character.Wander();
         else if (activity == "sleep")
         {
             _voice.Stop();
@@ -219,15 +219,15 @@ public partial class MainWindow : Window
                 default: Left = area.Right - w - margin; Top = area.Bottom - h - margin; return;
             }
         }
-        var area = Forms.Screen.PrimaryScreen?.WorkingArea;
-        if (area is null) return;
+        var primaryArea = Forms.Screen.PrimaryScreen?.WorkingArea;
+        if (primaryArea is null) return;
         var parts = _appearance.Position.Split(',', StringSplitOptions.TrimEntries);
         if (parts.Length == 2 &&
             double.TryParse(parts[0], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var savedLeft) &&
             double.TryParse(parts[1], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var savedTop))
         {
-            Left = Math.Clamp(savedLeft, area.Value.Left, area.Value.Right - Width);
-            Top = Math.Clamp(savedTop, area.Value.Top, area.Value.Bottom - Height);
+            Left = Math.Clamp(savedLeft, primaryArea.Value.Left, primaryArea.Value.Right - Width);
+            Top = Math.Clamp(savedTop, primaryArea.Value.Top, primaryArea.Value.Bottom - Height);
             return;
         }
         Left = area.Value.Right - Width - 40;
