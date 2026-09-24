@@ -25,6 +25,7 @@ public partial class MainWindow : Window
     private readonly ActivityScheduler _activityScheduler;
     private readonly CharacterController _character;
     private readonly MonitorProfileStore _monitorProfiles = new();
+    private readonly GameProfileStore _gameProfiles = new();
     private readonly ShortcutService _shortcuts;
     private readonly CharacterAssetService _assets = new();
     private CharacterAnimationService? _animation;
@@ -48,7 +49,7 @@ public partial class MainWindow : Window
 
         _pcActions = new PcActionService(_permissionManager);
         _character = new CharacterController(this);
-        _activityScheduler = new ActivityScheduler(_state, Say, _character);
+        _activityScheduler = new ActivityScheduler(_state, Say, _character, _gameProfiles);
         _activityScheduler.ContextChanged += OnContextChanged;
         _activityScheduler.ActivityChanged += OnActivityChanged;
         _shortcuts = new ShortcutService(this);
@@ -143,7 +144,8 @@ public partial class MainWindow : Window
         }
 
         var inGame = context.IsKnownGame;
-        var show = !inGame || profile.ShowCharacter;
+        var hasCustomGameProfile = context.ProcessName is not null && _gameProfiles.TryGet(context.ProcessName, out _);
+        var show = !inGame || (hasCustomGameProfile ? profile.ShowCharacter : _settings.ShowDuringGames);
         Character.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
 
         if (show && inGame && profile.MoveToSide)
