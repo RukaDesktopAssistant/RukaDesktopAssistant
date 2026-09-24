@@ -11,7 +11,7 @@
                     <ListBoxItem Content="システム"/><ListBoxItem Content="外観"/><ListBoxItem Content="会話"/>
                     <ListBoxItem Content="音声"/><ListBoxItem Content="AI"/><ListBoxItem Content="記憶"/>
                     <ListBoxItem Content="PC操作"/><ListBoxItem Content="ゲーム"/><ListBoxItem Content="通知"/>
-                    <ListBoxItem Content="キャラクター"/><ListBoxItem Content="権限"/><ListBoxItem Content="ショートカット"/>
+                    <ListBoxItem Content="キャラクター"/><ListBoxItem Content="権限"/><ListBoxItem Content="診断"/><ListBoxItem Content="ショートカット"/>
                 </ListBox>
             </StackPanel>
         </Border>
@@ -119,6 +119,13 @@
                             <CheckBox x:Name="AllowBrowserControl" Content="ブラウザ操作" Margin="0,6"/>
                             <CheckBox x:Name="AllowSystemSettings" Content="Windows設定・システム操作" Margin="0,6"/>
                         </StackPanel></GroupBox></StackPanel>
+                    </StackPanel>
+                    <StackPanel x:Name="DiagnosticsPage" Visibility="Collapsed">
+                        <GroupBox Header="セルフチェック"><StackPanel Margin="12">
+                            <TextBlock Text="接続・音声・権限・アセット・モニターなど、るかが実際に動ける状態かを確認します。" TextWrapping="Wrap" Margin="0,0,0,12"/>
+                            <Button Content="診断を実行" Click="RunDiagnostics_Click" Width="140" HorizontalAlignment="Left"/>
+                            <TextBox x:Name="DiagnosticsOutput" Margin="0,12,0,0" Height="260" IsReadOnly="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"/>
+                        </StackPanel></GroupBox>
                     </StackPanel>
                     <StackPanel x:Name="ShortcutPage" Visibility="Collapsed">
                         <GroupBox Header="ショートカット"><StackPanel Margin="12">
