@@ -12,6 +12,10 @@ public partial class MainWindow : Window
 {
     private readonly RukaState _state = new();
     private readonly ConversationStore _conversationStore = new();
+    private readonly MemoryStore _memoryStore = new();
+    private readonly PersonalityStore _personalityStore = new();
+    private readonly PermissionManager _permissionManager = new();
+    private readonly PcActionService _pcActions;
     private readonly VoiceService _voice = new();
     private readonly SettingsStore _settings = new();
     private readonly AppearanceSettings _appearance = new();
@@ -32,6 +36,7 @@ public partial class MainWindow : Window
         InitializeComponent();
 
         _settings.Load();
+        _permissionManager.Load();
         _appearance.Load();
         _audioStore.Load();
 
@@ -41,6 +46,7 @@ public partial class MainWindow : Window
         _voice.Volume = _audioStore.Current.TtsVolume;
         _voice.Enabled = _audioStore.Current.TtsEnabled;
 
+        _pcActions = new PcActionService(_permissionManager);
         _character = new CharacterController(this);
         _activityScheduler = new ActivityScheduler(_state, Say);
         _activityScheduler.ContextChanged += OnContextChanged;
@@ -298,17 +304,33 @@ public partial class MainWindow : Window
         var providerSettings = new ProviderSettings();
         providerSettings.Load();
 
-        if (providerSettings.Provider.Equals("http", StringComparison.OrdinalIgnoreCase)
-            && Uri.TryCreate(
-                providerSettings.Endpoint,
-                UriKind.Absolute,
-                out var endpoint))
+        var personality = _personalityStore.Profiles.FirstOrDefault()
+            ?? new PersonalityProfile("るか", "あなたはデスクトップに住むAIアシスタント「るか」です。自然で親しみやすい日本語で答え、必要以上に長く話しません。PC操作はユーザーの明示的な依頼がある場合だけ提案してください。", "私", "自然でラフ");
+        var memory = _memoryStore.Memories.Count == 0
+            ? "長期記憶はありません。"
+            : "ユーザーが明示的に保存した長期記憶:\n" + string.Join("\n", _memoryStore.Memories.Take(30).Select(x => "- " + x));
+
+        var systemPrompt = $"""
+        {personality.SystemPrompt}
+        名前: {personality.DisplayName}
+        一人称: {personality.FirstPerson}
+        話し方: {personality.SpeechStyle}
+        {memory}
+        ユーザーが「覚えて」と明示した内容だけを長期記憶として扱います。
+        """;
+
+        if ((providerSettings.Provider.Equals("openai", StringComparison.OrdinalIgnoreCase)
+             || providerSettings.Provider.Equals("http", StringComparison.OrdinalIgnoreCase))
+            && Uri.TryCreate(providerSettings.Endpoint, UriKind.Absolute, out var endpoint)
+            && !string.IsNullOrWhiteSpace(providerSettings.EffectiveApiKey))
         {
-            return new HttpAiProvider(
-                new System.Net.Http.HttpClient(),
+            return new OpenAiCompatibleProvider(
+                new System.Net.Http.HttpClient { Timeout = TimeSpan.FromSeconds(60) },
                 endpoint.ToString(),
-                providerSettings.HistoryCount,
-                providerSettings.SendRecentHistory);
+                providerSettings.EffectiveApiKey,
+                providerSettings.Model,
+                systemPrompt,
+                providerSettings.HistoryCount);
         }
 
         return new LocalAiProvider();
