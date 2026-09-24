@@ -2,8 +2,10 @@ using System.Diagnostics;
 
 namespace RukaDesktopAssistant.Services;
 
+
 public sealed class PcActionService
 {
+    private static string GetDownloadsFolder() => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads");
     private readonly PermissionManager _permissions;
     private readonly SafeActionService _safe;
 
@@ -52,7 +54,7 @@ public sealed class PcActionService
             var parts = payload.Split('|', 2, StringSplitOptions.TrimEntries);
             if (parts.Length != 2 || string.IsNullOrWhiteSpace(parts[0])) return "「ファイルに書いて ファイル名 | 内容」の形式で指定してね。";
             var path = parts[0];
-            var allowedRoots = new[] { Environment.GetFolderPath(Environment.SpecialFolder.Desktop), Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), Environment.GetFolderPath(Environment.SpecialFolder.Downloads) }.Where(Directory.Exists).Select(Path.GetFullPath).ToArray();
+            var allowedRoots = new[] { Environment.GetFolderPath(Environment.SpecialFolder.Desktop), Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), Environment.GetFolderPath(GetDownloadsFolder()) }.Where(Directory.Exists).Select(Path.GetFullPath).ToArray();
             try
             {
                 var full = Path.GetFullPath(path);
