@@ -1,5 +1,3 @@
-using System.Runtime.InteropServices;
-using System.Windows;
 using System.Windows.Forms;
 
 namespace RukaDesktopAssistant.Services;
@@ -31,7 +29,7 @@ public sealed class NotificationService
             }
             catch
             {
-                MessageBox.Show(message, title, MessageBoxButton.OK, MessageBoxImage.Information);
+                System.Windows.MessageBox.Show(message, title, System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
             }
         });
     }
