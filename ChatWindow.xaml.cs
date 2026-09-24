@@ -10,8 +10,10 @@ public partial class ChatWindow : Window
     private readonly ConversationStore _store;
     private readonly AiConversationService _ai;
     private readonly SemaphoreSlim _replyLock = new(1, 1);
+    private readonly MemoryStore _memory;
+    private readonly PcActionService? _pcActions;
 
-    public ChatWindow() : this(new ConversationStore(), new LocalAiProvider()) { }
+    public ChatWindow() : this(new ConversationStore(), new LocalAiProvider(), new MemoryStore(), null) { }
 
     public ChatWindow(ConversationStore store)
         : this(store, new LocalAiProvider()) { }
@@ -20,7 +22,7 @@ public partial class ChatWindow : Window
     {
         InitializeComponent();
         _store = store;
-        _ai = new AiConversationService(provider);
+        _ai = new AiConversationService(provider);\n        _memory = memory ?? new MemoryStore();\n        _pcActions = pcActions;
         Loaded += (_, _) => LoadHistory();
         Input.Focus();
     }
@@ -55,6 +57,26 @@ public partial class ChatWindow : Window
                 .Select(m => $"{m.Role}: {m.Text}")
                 .ToArray();
 
+            if (text.Contains("覚えて", StringComparison.OrdinalIgnoreCase) && text.Length > 3)
+            {
+                var memoryText = text.Replace("覚えて", "", StringComparison.OrdinalIgnoreCase)
+                    .Replace("ください", "", StringComparison.OrdinalIgnoreCase)
+                    .Trim(' ', '、', '。', '！', '!');
+                if (!string.IsNullOrWhiteSpace(memoryText))
+                    _memory.Remember(memoryText);
+            }
+
+            if (_pcActions is not null)
+            {
+                var actionReply = await _pcActions.TryHandleAsync(text, ConfirmDangerousActionAsync);
+                if (!string.IsNullOrWhiteSpace(actionReply))
+                {
+                    _store.Add("assistant", actionReply);
+                    AddMessage("るか", actionReply);
+                    return;
+                }
+            }
+
             var reply = await _ai.ReplyAsync(text, history);
             _store.Add("assistant", reply);
             AddMessage("るか", reply);
@@ -69,6 +91,16 @@ public partial class ChatWindow : Window
         {
             _replyLock.Release();
         }
+    }
+
+    private Task<bool> ConfirmDangerousActionAsync(string description)
+    {
+        var result = System.Windows.MessageBox.Show(
+            description + "\n\n実行していい？",
+            "るか — 操作の確認",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Warning);
+        return Task.FromResult(result == MessageBoxResult.Yes);
     }
 
     private void AddMessage(string speaker, string text)
