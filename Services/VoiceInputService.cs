@@ -10,6 +10,7 @@ public sealed class VoiceInputService : IDisposable
     private SpeechRecognitionEngine? _engine;
     private readonly DispatcherTimer _sessionTimer = new() { Interval = TimeSpan.FromSeconds(8) };
     private bool _conversationActive;
+    private DateTime _lastRecognizedAt = DateTime.MinValue;
 
     public bool IsListening { get; private set; }
     public event Action<string>? Recognized;
@@ -52,6 +53,7 @@ public sealed class VoiceInputService : IDisposable
     public void FeedRecognizedText(string text)
     {
         if (string.IsNullOrWhiteSpace(text)) return;
+        _lastRecognizedAt = DateTime.Now;
 
         var normalized = text.Replace(" ", "").Replace("　", "").Trim();
         if (normalized.Contains("るか、待って", StringComparison.OrdinalIgnoreCase)
