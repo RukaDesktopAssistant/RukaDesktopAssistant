@@ -230,8 +230,8 @@ public partial class MainWindow : Window
             Top = Math.Clamp(savedTop, primaryArea.Value.Top, primaryArea.Value.Bottom - Height);
             return;
         }
-        Left = area.Value.Right - Width - 40;
-        Top = area.Value.Bottom - Height - 40;
+        Left = primaryArea.Value.Right - Width - 40;
+        Top = primaryArea.Value.Bottom - Height - 40;
     }
 
     private void SavePosition()
