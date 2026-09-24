@@ -100,7 +100,7 @@
                         <GroupBox Header="通知"><StackPanel Margin="12">
                             <CheckBox x:Name="NotificationsEnabled" Content="通知を有効にする" Margin="0,6"/>
                             <TextBlock Text="現在は安全なフォールバック通知を使用します。" Margin="0,8,0,0"/>
-                        </StackPanel></GroupBox></StackPanel>
+                        </StackPanel></GroupBox>
                     </StackPanel>
                     <StackPanel x:Name="CharacterPage" Visibility="Collapsed">
                         <GroupBox Header="キャラクター"><StackPanel Margin="12">
