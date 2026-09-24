@@ -107,7 +107,7 @@ public partial class ChatWindow : Window
 
     private Task<bool> ConfirmDangerousActionAsync(string description)
     {
-        var result = MessageBox.Show(description + "\n\n実行していい？", "るか — 操作の確認", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+        var result = System.Windows.MessageBox.Show(description + "\n\n実行していい？", "るか — 操作の確認", MessageBoxButton.YesNo, MessageBoxImage.Warning);
         return Task.FromResult(result == MessageBoxResult.Yes);
     }
 
