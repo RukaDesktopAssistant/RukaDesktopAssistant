@@ -28,8 +28,12 @@ jobs:
       - name: Restore
         run: dotnet restore RukaDesktopAssistant.csproj
 
-      - name: Build
+      - name: Build desktop app
         run: dotnet build RukaDesktopAssistant.csproj --configuration Release --no-restore
+      - name: Restore Ruka AI server
+        run: dotnet restore RukaAiServer/RukaAiServer.csproj
+      - name: Build Ruka AI server
+        run: dotnet build RukaAiServer/RukaAiServer.csproj --configuration Release --no-restore
 
       - name: Publish single-file EXE
         run: dotnet publish RukaDesktopAssistant.csproj --configuration Release --runtime win-x64 --self-contained true --output publish /p:PublishSingleFile=true /p:IncludeNativeLibrariesForSelfExtract=true
