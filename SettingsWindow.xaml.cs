@@ -52,6 +52,12 @@ public partial class SettingsWindow : Window
     {
         try{var kind=(AiProvider.SelectedItem as ComboBoxItem)?.Content?.ToString()??"local";if(kind=="local"){System.Windows.MessageBox.Show("localモードは外部接続なしだよ。","るか");return;}if(!Uri.TryCreate(AiEndpoint.Text.Trim(),UriKind.Absolute,out var ep))throw new InvalidOperationException("エンドポイントが正しくありません。");var key=string.IsNullOrWhiteSpace(AiApiKey.Password)?Environment.GetEnvironmentVariable("RUKA_AI_API_KEY")??"":AiApiKey.Password.Trim();using var client=new HttpClient{Timeout=TimeSpan.FromSeconds(20)};IAiProvider test=kind=="openai"?new OpenAiCompatibleProvider(client,ep.ToString(),key, AiModel.Text.Trim(),"接続テスト用。短く返答してください。"):new HttpAiProvider(client,ep.ToString(),10);var reply=await test.GenerateAsync("接続テスト。『接続OK』と短く返答してください。",[]);System.Windows.MessageBox.Show("実際のサーバーから返答を受信したよ。\\n\\n"+reply,"AI接続成功");}catch(Exception ex){System.Windows.MessageBox.Show("実接続テスト失敗。\\n"+ex.Message,"るか",MessageBoxButton.OK,MessageBoxImage.Warning);}
     }
+    private void TestNotification_Click(object sender, RoutedEventArgs e)
+    {
+        var notifications = new NotificationService { Enabled = true };
+        notifications.Notify("るか", "通知テスト成功！デスクトップからちゃんと呼べたよ。");
+    }
+
     private void Navigation_SelectionChanged(object sender,SelectionChangedEventArgs e)
     {
         if(Navigation.SelectedItem is not ListBoxItem item)return;var title=item.Content?.ToString()??"設定";PageTitle.Text=title;PageDescription.Text=title switch{"システム"=>"起動、自律行動、ゲーム時の基本動作を管理します。","外観"=>"サイズ、透明度、最前面、吹き出しを管理します。","会話"=>"会話履歴を長期記憶とは別に管理します。","音声"=>"マイク、ウェイクワード、TTSを管理します。","AI"=>"実際にAPIへ接続して返答できるAIを設定します。","記憶"=>"明示的に保存した長期記憶だけを管理します。","PC操作"=>"るかが実行できるPC操作と安全確認を管理します。","ゲーム"=>"ゲームごとの表示、退避、音声、サイズを管理します。","モニター"=>"モニターごとの有効化、位置、サイズを管理します。","通知"=>"通知設定を管理します。","キャラクター"=>"キャラクターアセットと性格プリセットを管理します。","権限"=>"PC操作の権限を個別に管理します。","診断"=>"るかが実際に動ける状態かをセルフチェックします。",_=>"ショートカットを確認します。"};foreach(var p in Pages.Children.OfType<StackPanel>())p.Visibility=Visibility.Collapsed;var page=title switch{"システム"=>SystemPage,"外観"=>AppearancePage,"会話"=>ConversationPage,"音声"=>VoicePage,"AI"=>AiPage,"記憶"=>MemoryPage,"PC操作"=>PcPage,"ゲーム"=>GamePage,"モニター"=>MonitorPage,"通知"=>NotificationPage,"キャラクター"=>CharacterPage,"権限"=>PermissionPage,"診断"=>DiagnosticsPage,_=>ShortcutPage};page.Visibility=Visibility.Visible;
