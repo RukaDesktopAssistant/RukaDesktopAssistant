@@ -14,6 +14,11 @@
     <RootNamespace>RukaDesktopAssistant</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Remove="RukaAiServer/**/*.cs" />
+    <EmbeddedResource Remove="RukaAiServer/**/*.resx" />
+    <None Remove="RukaAiServer/**/*" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="System.Speech" Version="8.0.0" />
     <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="8.0.0" />
   </ItemGroup>
