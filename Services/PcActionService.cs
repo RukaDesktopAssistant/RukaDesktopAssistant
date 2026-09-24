@@ -45,6 +45,24 @@ public sealed class PcActionService
             catch { return "Windows設定を開けなかったよ。"; }
         }
 
+        if (t.StartsWith("ファイルに書いて", StringComparison.OrdinalIgnoreCase))
+        {
+            if (!_permissions.AllowFileWrite) return "ファイル書き込み権限がオフだよ。";
+            var payload = t["ファイルに書いて".Length..].Trim();
+            var parts = payload.Split('|', 2, StringSplitOptions.TrimEntries);
+            if (parts.Length != 2 || string.IsNullOrWhiteSpace(parts[0])) return "「ファイルに書いて ファイル名 | 内容」の形式で指定してね。";
+            var path = parts[0];
+            var allowedRoots = new[] { Environment.GetFolderPath(Environment.SpecialFolder.Desktop), Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), Environment.GetFolderPath(Environment.SpecialFolder.Downloads) }.Where(Directory.Exists).Select(Path.GetFullPath).ToArray();
+            try
+            {
+                var full = Path.GetFullPath(path);
+                if (!allowedRoots.Any(root => full.StartsWith(root + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase) || string.Equals(full, root, StringComparison.OrdinalIgnoreCase))) return "安全のため、デスクトップ・ドキュメント・ダウンロード内だけに書き込めるよ。";
+                var ok = await _safe.TryExecuteAsync(new ActionRequest("write-file", $"ファイルを書き込みます: {full}", ActionRisk.Medium, () => { Directory.CreateDirectory(Path.GetDirectoryName(full)!); File.WriteAllText(full, parts[1]); return Task.CompletedTask; }), confirm);
+                return ok ? $"ファイルを書き込んだよ: {full}" : "ファイル書き込みはキャンセルしたよ。";
+            }
+            catch (Exception ex) { return "ファイルを書き込めなかったよ: " + ex.Message; }
+        }
+
         if (t.StartsWith("ファイルを探して", StringComparison.OrdinalIgnoreCase))
         {
             if (!_permissions.AllowFileRead) return "ファイル読み取り権限がオフだよ。";
