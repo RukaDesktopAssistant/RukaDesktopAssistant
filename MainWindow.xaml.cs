@@ -144,8 +144,6 @@ public partial class MainWindow : Window
 
         var inGame = context.IsKnownGame;
         var show = !inGame || profile.ShowCharacter;
-        if (inGame && !profile.ShowCharacter && _settings.ShowDuringGames && profile == null)
-            show = true;
         Character.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
 
         if (show && inGame && profile.MoveToSide)
