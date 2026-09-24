@@ -56,9 +56,9 @@
                             <ComboBoxItem Content="openai"/>
                             <ComboBoxItem Content="http"/>
                         </ComboBox>
-                        <TextBlock Text="APIエンドポイント"/>
-                        <TextBox x:Name="AiApiKey" Margin="0,4,0,8" ToolTip="空欄ならRUKA_AI_API_KEY環境変数を使用"/>
                         <TextBlock Text="APIキー"/>
+                        <TextBox x:Name="AiApiKey" Margin="0,4,0,8" ToolTip="空欄ならRUKA_AI_API_KEY環境変数を使用"/>
+                        <TextBlock Text="APIエンドポイント"/>
                         <TextBox x:Name="AiEndpoint" Margin="0,4,0,8"/>
                         <TextBlock Text="モデル"/>
                         <TextBox x:Name="AiModel" Margin="0,4,0,8"/>
