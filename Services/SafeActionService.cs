@@ -18,7 +18,14 @@ public sealed class SafeActionService
             if (!approved) return false;
         }
 
-        await request.Execute();
-        return true;
+        try
+        {
+            await request.Execute();
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
     }
 }
