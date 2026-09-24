@@ -65,6 +65,10 @@ public partial class ChatWindow : Window
             var reply = await _ai.ReplyAsync(text, history);
             Reply(reply);
         }
+        catch (OperationCanceledException)
+        {
+            Reply("処理をキャンセルしたよ。");
+        }
         catch (Exception ex)
         {
             Reply($"ごめん、返答中にエラーが起きたよ。{ex.Message}");
