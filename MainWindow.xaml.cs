@@ -143,7 +143,9 @@ public partial class MainWindow : Window
         }
 
         var inGame = context.IsKnownGame;
-        var show = !inGame || (_settings.ShowDuringGames && profile.ShowCharacter);
+        var show = !inGame || profile.ShowCharacter;
+        if (inGame && !profile.ShowCharacter && _settings.ShowDuringGames && profile == null)
+            show = true;
         Character.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
 
         if (show && inGame && profile.MoveToSide)
@@ -299,7 +301,8 @@ public partial class MainWindow : Window
     {
         var providerSettings = new ProviderSettings();
         providerSettings.Load();
-        var personality = _personalityStore.Profiles.FirstOrDefault()
+        var personality = _personalityStore.Profiles.FirstOrDefault(x => x.Name.Equals(_settings.ActivePersonalityName, StringComparison.OrdinalIgnoreCase))
+            ?? _personalityStore.Profiles.FirstOrDefault()
             ?? new PersonalityProfile("るか", "あなたはデスクトップに住むAIアシスタント「るか」です。自然で親しみやすい日本語で答え、必要以上に長く話しません。PC操作はユーザーの明示的な依頼がある場合だけ提案してください。", "私", "自然でラフ");
         var memory = _memoryStore.Memories.Count == 0
             ? "長期記憶はありません。"
@@ -324,7 +327,8 @@ public partial class MainWindow : Window
                 providerSettings.EffectiveApiKey,
                 providerSettings.Model,
                 systemPrompt,
-                providerSettings.HistoryCount);
+                providerSettings.HistoryCount,
+                providerSettings.SendRecentHistory);
         }
         return new LocalAiProvider();
     }
