@@ -345,6 +345,18 @@ public partial class MainWindow : Window
         ユーザーが「覚えて」と明示した内容だけを長期記憶として扱います。
         """;
 
+        if (providerSettings.Provider.Equals("ruka", StringComparison.OrdinalIgnoreCase) &&
+            Uri.TryCreate(providerSettings.RukaEndpoint, UriKind.Absolute, out var rukaEndpoint))
+        {
+            return new RukaCloudProvider(
+                new System.Net.Http.HttpClient { Timeout = TimeSpan.FromSeconds(90) },
+                rukaEndpoint.ToString(),
+                systemPrompt,
+                providerSettings.InstallationId,
+                providerSettings.HistoryCount,
+                providerSettings.SendRecentHistory);
+        }
+
         if ((providerSettings.Provider.Equals("openai", StringComparison.OrdinalIgnoreCase) ||
              providerSettings.Provider.Equals("http", StringComparison.OrdinalIgnoreCase)) &&
             Uri.TryCreate(providerSettings.Endpoint, UriKind.Absolute, out var endpoint) &&
@@ -359,6 +371,7 @@ public partial class MainWindow : Window
                 providerSettings.HistoryCount,
                 providerSettings.SendRecentHistory);
         }
+
         return new LocalAiProvider();
     }
 
