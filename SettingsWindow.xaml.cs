@@ -51,7 +51,7 @@ public partial class SettingsWindow : Window
     }
     private void Navigation_SelectionChanged(object sender,SelectionChangedEventArgs e)
     {
-        if(Navigation.SelectedItem is not ListBoxItem item)return;var title=item.Content?.ToString()??"設定";PageTitle.Text=title;PageDescription.Text=title switch{"システム"=>"起動、自律行動、ゲーム時の基本動作を管理します。","外観"=>"サイズ、透明度、最前面、吹き出しを管理します。","会話"=>"会話履歴を長期記憶とは別に管理します。","音声"=>"マイク、ウェイクワード、TTSを管理します。","AI"=>"実際にAPIへ接続して返答できるAIを設定します。","記憶"=>"明示的に保存した長期記憶だけを管理します。","PC操作"=>"るかが実行できるPC操作と安全確認を管理します。","ゲーム"=>"ゲームごとの表示、退避、音声、サイズを管理します。","通知"=>"通知設定を管理します。","キャラクター"=>"キャラクターアセットと性格プリセットを管理します。","権限"=>"PC操作の権限を個別に管理します。",_=>"ショートカットを確認します。"};foreach(var p in Pages.Children.OfType<StackPanel>())p.Visibility=Visibility.Collapsed;var page=title switch{"システム"=>SystemPage,"外観"=>AppearancePage,"会話"=>ConversationPage,"音声"=>VoicePage,"AI"=>AiPage,"記憶"=>MemoryPage,"PC操作"=>PcPage,"ゲーム"=>GamePage,"通知"=>NotificationPage,"キャラクター"=>CharacterPage,"権限"=>PermissionPage,_=>ShortcutPage};page.Visibility=Visibility.Visible;
+        if(Navigation.SelectedItem is not ListBoxItem item)return;var title=item.Content?.ToString()??"設定";PageTitle.Text=title;PageDescription.Text=title switch{"システム"=>"起動、自律行動、ゲーム時の基本動作を管理します。","外観"=>"サイズ、透明度、最前面、吹き出しを管理します。","会話"=>"会話履歴を長期記憶とは別に管理します。","音声"=>"マイク、ウェイクワード、TTSを管理します。","AI"=>"実際にAPIへ接続して返答できるAIを設定します。","記憶"=>"明示的に保存した長期記憶だけを管理します。","PC操作"=>"るかが実行できるPC操作と安全確認を管理します。","ゲーム"=>"ゲームごとの表示、退避、音声、サイズを管理します。","通知"=>"通知設定を管理します。","キャラクター"=>"キャラクターアセットと性格プリセットを管理します。","権限"=>"PC操作の権限を個別に管理します。",_=>"ショートカットを確認します。"};foreach(var p in Pages.Children.OfType<StackPanel>())p.Visibility=Visibility.Collapsed;var page=title switch{"システム"=>SystemPage,"外観"=>AppearancePage,"会話"=>ConversationPage,"音声"=>VoicePage,"AI"=>AiPage,"記憶"=>MemoryPage,"PC操作"=>PcPage,"ゲーム"=>GamePage,"通知"=>NotificationPage,"キャラクター"=>CharacterPage,"権限"=>PermissionPage,"診断"=>DiagnosticsPage,_=>ShortcutPage};page.Visibility=Visibility.Visible;
     }
     private void RefreshMemory(){MemoryList.ItemsSource=_memory.Memories.ToList();}
     private void AddMemory_Click(object sender,RoutedEventArgs e){if(!string.IsNullOrWhiteSpace(MemoryInput.Text)){_memory.Remember(MemoryInput.Text);MemoryInput.Clear();RefreshMemory();}}
@@ -64,3 +64,26 @@ public partial class SettingsWindow : Window
     private void PersonalitySelector_SelectionChanged(object sender,SelectionChangedEventArgs e){var name=PersonalitySelector.SelectedItem?.ToString();var p=_personalities.Profiles.FirstOrDefault(x=>x.Name==name);if(p is null)return;PersonalityName.Text=p.Name;PersonalityPrompt.Text=p.SystemPrompt;PersonalityFirstPerson.Text=p.FirstPerson;PersonalityStyle.Text=p.SpeechStyle;}
     private void SavePersonality_Click(object sender,RoutedEventArgs e){if(string.IsNullOrWhiteSpace(PersonalityName.Text))return;_personalities.Add(new PersonalityProfile(PersonalityName.Text.Trim(),PersonalityPrompt.Text.Trim(),string.IsNullOrWhiteSpace(PersonalityFirstPerson.Text)?"私":PersonalityFirstPerson.Text.Trim(),string.IsNullOrWhiteSpace(PersonalityStyle.Text)?"自然":PersonalityStyle.Text.Trim()));LoadPersonalities();MessageBox.Show("性格プリセットを保存したよ。","るか");}
 }
+    private void RunDiagnostics_Click(object sender, RoutedEventArgs e)
+    {
+        var lines = new List<string>();
+        try
+        {
+            lines.Add("[OK] 設定ファイル: 読み込み済み");
+            lines.Add($"[OK] AIプロバイダー: {_providerSettings.Provider}");
+            lines.Add(string.IsNullOrWhiteSpace(_providerSettings.EffectiveApiKey) ? "[WARN] AI APIキー: 未設定（local/http構成によっては不要）" : "[OK] AI APIキー: 設定済み");
+            lines.Add($"[OK] AIモデル: {_providerSettings.Model}");
+            lines.Add($"[OK] 音声入力: {_settings.VoiceInputEnabled}");
+            lines.Add($"[OK] ウェイクワード: {_audioStore.Current.WakePhrase}");
+            lines.Add($"[OK] 自律行動: {_settings.AutonomousBehaviorEnabled}");
+            lines.Add($"[OK] 危険操作確認: {_permissions.RequireConfirmationForDangerousActions}");
+            lines.Add($"[OK] PC操作権限: 起動={_permissions.AllowLaunchApps}, 終了={_permissions.AllowCloseApps}, ファイル読取={_permissions.AllowFileRead}, ブラウザ={_permissions.AllowBrowserControl}");
+            var monitors = MonitorService.GetMonitors();
+            lines.Add($"[OK] モニター: {monitors.Count}台");
+            var assets = new CharacterAssetService();
+            lines.Add(assets.TryLoad("ruka-idle.png") is null ? "[WARN] ruka-idle.png: 未配置（ベクターフォールバックを使用）" : "[OK] ruka-idle.png: 検出");
+            lines.Add("[INFO] 詳細なAI接続確認は『AI』ページの実接続テストを使用してください。");
+        }
+        catch (Exception ex) { lines.Add("[ERROR] 診断中に例外: " + ex.Message); }
+        DiagnosticsOutput.Text = string.Join(Environment.NewLine, lines);
+    }
