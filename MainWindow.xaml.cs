@@ -206,12 +206,17 @@ public partial class MainWindow : Window
         {
             var target = screens.FirstOrDefault(x => _monitorProfiles.Get(x.Id).Enabled) ?? screens[0];
             var profile = _monitorProfiles.Get(target.Id);
+            if (!profile.Enabled) { target = screens[0]; profile = _monitorProfiles.Get(target.Id); }
             var area = target.WorkingArea;
-            if (profile.Position.Equals("bottom-right", StringComparison.OrdinalIgnoreCase))
+            var margin = 40;
+            var w = Width * Math.Clamp(profile.Scale, 0.5, 2.0);
+            var h = Height * Math.Clamp(profile.Scale, 0.5, 2.0);
+            switch (profile.Position.ToLowerInvariant())
             {
-                Left = area.Right - Width - 40;
-                Top = area.Bottom - Height - 40;
-                return;
+                case "bottom-left": Left = area.Left + margin; Top = area.Bottom - h - margin; return;
+                case "top-right": Left = area.Right - w - margin; Top = area.Top + margin; return;
+                case "top-left": Left = area.Left + margin; Top = area.Top + margin; return;
+                default: Left = area.Right - w - margin; Top = area.Bottom - h - margin; return;
             }
         }
         var area = Forms.Screen.PrimaryScreen?.WorkingArea;
