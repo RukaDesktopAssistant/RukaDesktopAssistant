@@ -13,16 +13,23 @@ public partial class ChatWindow : Window
     private readonly MemoryStore _memory;
     private readonly PcActionService? _pcActions;
 
-    public ChatWindow() : this(new ConversationStore(), new LocalAiProvider(), new MemoryStore(), null) { }
+    public ChatWindow()
+        : this(new ConversationStore(), new LocalAiProvider(), new MemoryStore(), null) { }
 
     public ChatWindow(ConversationStore store)
-        : this(store, new LocalAiProvider()) { }
+        : this(store, new LocalAiProvider(), new MemoryStore(), null) { }
 
-    public ChatWindow(ConversationStore store, IAiProvider provider)
+    public ChatWindow(
+        ConversationStore store,
+        IAiProvider provider,
+        MemoryStore? memory = null,
+        PcActionService? pcActions = null)
     {
         InitializeComponent();
         _store = store;
-        _ai = new AiConversationService(provider);\n        _memory = memory ?? new MemoryStore();\n        _pcActions = pcActions;
+        _ai = new AiConversationService(provider);
+        _memory = memory ?? new MemoryStore();
+        _pcActions = pcActions;
         Loaded += (_, _) => LoadHistory();
         Input.Focus();
     }
@@ -52,18 +59,12 @@ public partial class ChatWindow : Window
             AddMessage("あなた", text);
             Input.Clear();
 
-            var history = _store.Messages
-                .TakeLast(20)
-                .Select(m => $"{m.Role}: {m.Text}")
-                .ToArray();
-
-            if (text.Contains("覚えて", StringComparison.OrdinalIgnoreCase) && text.Length > 3)
+            var memoryCommand = TryHandleMemoryCommand(text);
+            if (memoryCommand is not null)
             {
-                var memoryText = text.Replace("覚えて", "", StringComparison.OrdinalIgnoreCase)
-                    .Replace("ください", "", StringComparison.OrdinalIgnoreCase)
-                    .Trim(' ', '、', '。', '！', '!');
-                if (!string.IsNullOrWhiteSpace(memoryText))
-                    _memory.Remember(memoryText);
+                _store.Add("assistant", memoryCommand);
+                AddMessage("るか", memoryCommand);
+                return;
             }
 
             if (_pcActions is not null)
@@ -76,6 +77,11 @@ public partial class ChatWindow : Window
                     return;
                 }
             }
+
+            var history = _store.Messages
+                .TakeLast(20)
+                .Select(m => $"{m.Role}: {m.Text}")
+                .ToArray();
 
             var reply = await _ai.ReplyAsync(text, history);
             _store.Add("assistant", reply);
@@ -91,6 +97,44 @@ public partial class ChatWindow : Window
         {
             _replyLock.Release();
         }
+    }
+
+    private string? TryHandleMemoryCommand(string text)
+    {
+        var normalized = text.Trim();
+
+        if (normalized.StartsWith("覚えて", StringComparison.OrdinalIgnoreCase))
+        {
+            var memoryText = normalized["覚えて".Length..]
+                .Trim(' ', '　', '、', '。', '！', '!');
+            if (string.IsNullOrWhiteSpace(memoryText))
+                return "もちろん。覚えてほしい内容を続けて教えてね。";
+
+            _memory.Remember(memoryText);
+            return $"覚えておくね。「{memoryText}」";
+        }
+
+        if (normalized.StartsWith("忘れて", StringComparison.OrdinalIgnoreCase))
+        {
+            var memoryText = normalized["忘れて".Length..]
+                .Trim(' ', '　', '、', '。', '！', '!');
+            if (string.IsNullOrWhiteSpace(memoryText))
+                return "どの記憶を忘れればいい？";
+
+            _memory.Forget(memoryText);
+            return $"その内容は長期記憶から外したよ。「{memoryText}」";
+        }
+
+        if (normalized is "覚えていること" or "何を覚えてる？" or "何を覚えている？")
+        {
+            if (_memory.Memories.Count == 0)
+                return "今は長期記憶に保存していることはないよ。";
+
+            return "今保存している長期記憶はこれだよ：\n" +
+                   string.Join("\n", _memory.Memories.Select(x => "・" + x));
+        }
+
+        return null;
     }
 
     private Task<bool> ConfirmDangerousActionAsync(string description)
