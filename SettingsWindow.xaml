@@ -123,7 +123,6 @@
                             <CheckBox x:Name="AllowBrowserControl" Content="ブラウザ操作" Margin="0,6"/>
                             <CheckBox x:Name="AllowSystemSettings" Content="Windows設定・システム操作" Margin="0,6"/>
                         </StackPanel></GroupBox></StackPanel>
-                    </StackPanel>
                     <StackPanel x:Name="DiagnosticsPage" Visibility="Collapsed">
                         <GroupBox Header="セルフチェック"><StackPanel Margin="12">
                             <TextBlock Text="接続・音声・権限・アセット・モニターなど、るかが実際に動ける状態かを確認します。" TextWrapping="Wrap" Margin="0,0,0,12"/>
