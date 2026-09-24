@@ -54,7 +54,7 @@ public sealed class PcActionService
             var parts = payload.Split('|', 2, StringSplitOptions.TrimEntries);
             if (parts.Length != 2 || string.IsNullOrWhiteSpace(parts[0])) return "「ファイルに書いて ファイル名 | 内容」の形式で指定してね。";
             var path = parts[0];
-            var allowedRoots = new[] { Environment.GetFolderPath(Environment.SpecialFolder.Desktop), Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), Environment.GetFolderPath(GetDownloadsFolder()) }.Where(Directory.Exists).Select(Path.GetFullPath).ToArray();
+            var allowedRoots = new[] { Environment.GetFolderPath(Environment.SpecialFolder.Desktop), Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), GetDownloadsFolder() }.Where(Directory.Exists).Select(Path.GetFullPath).ToArray();
             try
             {
                 var full = Path.GetFullPath(path);
@@ -70,7 +70,7 @@ public sealed class PcActionService
             if (!_permissions.AllowFileRead) return "ファイル読み取り権限がオフだよ。";
             var name = t["ファイルを探して".Length..].Trim();
             if (name.Length == 0) return "探したいファイル名を教えてね。";
-            var roots = new[] { Environment.GetFolderPath(Environment.SpecialFolder.Desktop), Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), Environment.GetFolderPath(Environment.SpecialFolder.Downloads) };
+            var roots = new[] { Environment.GetFolderPath(Environment.SpecialFolder.Desktop), Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), GetDownloadsFolder() };
             var found = new List<string>();
             foreach (var root in roots.Where(Directory.Exists))
             {
