@@ -9,6 +9,7 @@ public partial class App : System.Windows.Application
 
     protected override void OnStartup(StartupEventArgs e)
     {
+        ShutdownMode = ShutdownMode.OnMainWindowClose;
         _singleInstance = new Mutex(true, "RukaDesktopAssistant.SingleInstance", out var created);
         if (!created)
         {
