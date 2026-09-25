@@ -1,0 +1,43 @@
+{
+  "version": 1,
+  "targetEntryCount": 1000000,
+  "strategy": "deterministic-expansion",
+  "note": "The million-entry corpus is generated from compact phrase/response templates at runtime or during a build step. This avoids storing hundreds of MB of redundant JSON in Git while still providing one million distinct indexed pattern combinations.",
+  "dimensions": {
+    "baseIntents": 120,
+    "wordingVariants": 40,
+    "toneVariants": 10,
+    "contextVariants": 10,
+    "responseVariants": 20,
+    "theoreticalCombinations": 9600000
+  },
+  "categories": [
+    "casual",
+    "project",
+    "tech",
+    "network",
+    "games",
+    "ai",
+    "youtube",
+    "study",
+    "music",
+    "context",
+    "support",
+    "ruka"
+  ],
+  "generationRules": [
+    "Keep the original base intent.",
+    "Combine a base trigger with wording variants without changing meaning.",
+    "Attach optional casual Japanese particles and conversational endings.",
+    "Combine category-specific context tags.",
+    "Select compatible response variants rather than random unrelated responses.",
+    "Deduplicate identical trigger/response pairs before indexing.",
+    "Do not encode sensitive personal information into generated patterns."
+  ],
+  "storagePolicy": {
+    "compactSeedInGit": true,
+    "generatedCorpusInMemory": true,
+    "generatedCorpusCache": false,
+    "maxRuntimeEntries": 1000000
+  }
+}
