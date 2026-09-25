@@ -12,6 +12,13 @@ public sealed class CharacterController
 
     public CharacterController(Window window) => _window = window;
 
+    public void StopMovement()
+    {
+        _window.BeginAnimation(Window.LeftProperty, null);
+        _window.BeginAnimation(Window.TopProperty, null);
+        IsMoving = false;
+    }
+
     public void MoveTo(double left, double top, TimeSpan? duration = null)
     {
         var d = duration ?? TimeSpan.FromMilliseconds(900);
@@ -50,6 +57,7 @@ public sealed class CharacterController
 
     public void Wander()
     {
+        if (IsMoving) return;
         var point = new System.Drawing.Point((int)_window.Left, (int)_window.Top);
         var screen = System.Windows.Forms.Screen.FromPoint(point);
         var work = screen.WorkingArea;
