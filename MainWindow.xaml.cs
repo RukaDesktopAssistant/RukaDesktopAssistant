@@ -348,13 +348,15 @@ public partial class MainWindow : Window
         if (providerSettings.Provider.Equals("ruka", StringComparison.OrdinalIgnoreCase) &&
             Uri.TryCreate(providerSettings.RukaEndpoint, UriKind.Absolute, out var rukaEndpoint))
         {
-            return new RukaCloudProvider(
-                new System.Net.Http.HttpClient { Timeout = TimeSpan.FromSeconds(90) },
-                rukaEndpoint.ToString(),
-                systemPrompt,
-                providerSettings.InstallationId,
-                providerSettings.HistoryCount,
-                providerSettings.SendRecentHistory);
+            return new FallbackAiProvider(
+                new RukaCloudProvider(
+                    new System.Net.Http.HttpClient { Timeout = TimeSpan.FromSeconds(90) },
+                    rukaEndpoint.ToString(),
+                    systemPrompt,
+                    providerSettings.InstallationId,
+                    providerSettings.HistoryCount,
+                    providerSettings.SendRecentHistory),
+                new LocalAiProvider());
         }
 
         if ((providerSettings.Provider.Equals("openai", StringComparison.OrdinalIgnoreCase) ||
@@ -362,14 +364,16 @@ public partial class MainWindow : Window
             Uri.TryCreate(providerSettings.Endpoint, UriKind.Absolute, out var endpoint) &&
             !string.IsNullOrWhiteSpace(providerSettings.EffectiveApiKey))
         {
-            return new OpenAiCompatibleProvider(
-                new System.Net.Http.HttpClient { Timeout = TimeSpan.FromSeconds(60) },
-                endpoint.ToString(),
-                providerSettings.EffectiveApiKey,
-                providerSettings.Model,
-                systemPrompt,
-                providerSettings.HistoryCount,
-                providerSettings.SendRecentHistory);
+            return new FallbackAiProvider(
+                new OpenAiCompatibleProvider(
+                    new System.Net.Http.HttpClient { Timeout = TimeSpan.FromSeconds(60) },
+                    endpoint.ToString(),
+                    providerSettings.EffectiveApiKey,
+                    providerSettings.Model,
+                    systemPrompt,
+                    providerSettings.HistoryCount,
+                    providerSettings.SendRecentHistory),
+                new LocalAiProvider());
         }
 
         return new LocalAiProvider();
