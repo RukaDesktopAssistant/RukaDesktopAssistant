@@ -29,7 +29,9 @@ public partial class MainWindow : Window
     private readonly ShortcutService _shortcuts;
     private readonly CharacterAssetService _assets = new();
     private CharacterAnimationService? _animation;
-    private System.Windows.Point _dragStart;
+    private System.Windows.Point _dragStartScreen;
+    private double _dragWindowStartLeft;
+    private double _dragWindowStartTop;
     private bool _dragging;
     private ChatWindow? _chatWindow;
 
@@ -248,19 +250,24 @@ public partial class MainWindow : Window
             e.Handled = true;
             return;
         }
-        _dragStart = e.GetPosition(this);
+        _dragStartScreen = PointToScreen(e.GetPosition(this));
+        _dragWindowStartLeft = Left;
+        _dragWindowStartTop = Top;
         _dragging = true;
         CaptureMouse();
         MouseMove += DragMove;
         MouseLeftButtonUp += EndDrag;
+        Cursor = Cursors.SizeAll;
     }
 
     private void DragMove(object? sender, System.Windows.Input.MouseEventArgs e)
     {
         if (!_dragging || e.LeftButton != MouseButtonState.Pressed) return;
-        var p = e.GetPosition(null);
-        Left = p.X - _dragStart.X;
-        Top = p.Y - _dragStart.Y;
+        var currentScreen = PointToScreen(e.GetPosition(this));
+        var deltaX = currentScreen.X - _dragStartScreen.X;
+        var deltaY = currentScreen.Y - _dragStartScreen.Y;
+        Left = _dragWindowStartLeft + deltaX;
+        Top = _dragWindowStartTop + deltaY;
     }
 
     private void EndDrag(object? sender, MouseButtonEventArgs e)
@@ -269,6 +276,7 @@ public partial class MainWindow : Window
         ReleaseMouseCapture();
         MouseMove -= DragMove;
         MouseLeftButtonUp -= EndDrag;
+        Cursor = Cursors.Arrow;
         SavePosition();
     }
 
