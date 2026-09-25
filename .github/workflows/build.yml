@@ -66,10 +66,10 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         shell: pwsh
         run: |
-          $tag = "v0.2.0"
+          $tag = "v0.2.1"
           gh release view $tag --repo $env:GITHUB_REPOSITORY 2>$null
           if ($LASTEXITCODE -ne 0) {
-            gh release create $tag RukaDesktopAssistant.exe RukaDesktopAssistant-win-x64.zip --repo $env:GITHUB_REPOSITORY --title "Ruka Desktop Assistant v0.2.0" --notes "Windows版Ruka Desktop Assistant。EXEまたはZIPをダウンロードして使えます。"
+            gh release create $tag RukaDesktopAssistant.exe RukaDesktopAssistant-win-x64.zip --repo $env:GITHUB_REPOSITORY --title "Ruka Desktop Assistant v0.2.1" --notes "Windows版Ruka Desktop Assistant v0.2.1。ドラッグ座標処理を修正した実機確認版です。"
           } else {
             gh release upload $tag RukaDesktopAssistant.exe RukaDesktopAssistant-win-x64.zip --repo $env:GITHUB_REPOSITORY --clobber
           }
