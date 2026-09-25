@@ -14,11 +14,13 @@ public sealed class LocalAiProvider : IAiProvider
 
     private readonly List<LocalPattern> _patterns;
     private readonly Dictionary<string, List<LocalPattern>> _index;
+    private readonly LocalCorpusExpander _expander;
 
     public LocalAiProvider()
     {
         _patterns = LoadPatterns();
         _index = BuildIndex(_patterns);
+        _expander = new LocalCorpusExpander();
     }
 
     public Task<string> GenerateAsync(
@@ -66,6 +68,22 @@ public sealed class LocalAiProvider : IAiProvider
             .Select(Normalize)
             .Where(x => x.Length > 0)
             .ToArray();
+
+        // The million-pattern corpus is virtual: variants are generated only
+        // for relevant seed candidates, so startup memory stays small.
+        foreach (var expanded in _expander.ExpandCandidates(
+            candidateSet.Select(p => (p.Trigger, p.Response, p.Category)).ToList(),
+            text,
+            max: 192))
+        {
+            candidateSet.Add(new LocalPattern(
+                "virtual-" + Math.Abs(HashCode.Combine(expanded.Trigger, expanded.Response)),
+                expanded.Category,
+                expanded.Trigger,
+                expanded.Response,
+                expanded.Category,
+                0.8));
+        }
 
         return candidateSet
             .Select(p =>
