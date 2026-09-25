@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media.Animation;
+using System.Runtime.InteropServices;
 using RukaDesktopAssistant.Models;
 using RukaDesktopAssistant.Services;
 using RukaDesktopAssistant.Services.AI;
@@ -29,10 +30,21 @@ public partial class MainWindow : Window
     private readonly ShortcutService _shortcuts;
     private readonly CharacterAssetService _assets = new();
     private CharacterAnimationService? _animation;
-    private System.Windows.Point _dragStartScreen;
+    private System.Windows.Point _dragStartScreenPixels;
     private double _dragWindowStartLeft;
     private double _dragWindowStartTop;
+    private double _dragOffsetPixelsX;
+    private double _dragOffsetPixelsY;
     private bool _dragging;
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct NativePoint { public int X; public int Y; }
+
+    [DllImport("user32.dll")]
+    private static extern bool GetCursorPos(out NativePoint point);
+
+    [DllImport("user32.dll")]
+    private static extern uint GetDpiForWindow(nint hWnd);
     private ChatWindow? _chatWindow;
 
     public MainWindow()
@@ -250,9 +262,18 @@ public partial class MainWindow : Window
             e.Handled = true;
             return;
         }
-        _dragStartScreen = PointToScreen(e.GetPosition(this));
+        _character.StopMovement();
+        BeginAnimation(Window.LeftProperty, null);
+        BeginAnimation(Window.TopProperty, null);
+
+        if (!GetCursorPos(out var cursor)) return;
+        var dpi = GetDpiScale();
+        var mouseInWindow = e.GetPosition(this);
+        _dragStartScreenPixels = new System.Windows.Point(cursor.X, cursor.Y);
         _dragWindowStartLeft = Left;
         _dragWindowStartTop = Top;
+        _dragOffsetPixelsX = mouseInWindow.X * dpi;
+        _dragOffsetPixelsY = mouseInWindow.Y * dpi;
         _dragging = true;
         CaptureMouse();
         MouseMove += DragMove;
@@ -263,11 +284,22 @@ public partial class MainWindow : Window
     private void DragMove(object? sender, System.Windows.Input.MouseEventArgs e)
     {
         if (!_dragging || e.LeftButton != MouseButtonState.Pressed) return;
-        var currentScreen = PointToScreen(e.GetPosition(this));
-        var deltaX = currentScreen.X - _dragStartScreen.X;
-        var deltaY = currentScreen.Y - _dragStartScreen.Y;
-        Left = _dragWindowStartLeft + deltaX;
-        Top = _dragWindowStartTop + deltaY;
+        if (!GetCursorPos(out var cursor)) return;
+        var dpi = GetDpiScale();
+        var newLeftPixels = cursor.X - _dragOffsetPixelsX;
+        var newTopPixels = cursor.Y - _dragOffsetPixelsY;
+        var newLeft = newLeftPixels / dpi;
+        var newTop = newTopPixels / dpi;
+        if (Math.Abs(newLeft - Left) > 2000 || Math.Abs(newTop - Top) > 2000) return;
+        Left = newLeft;
+        Top = newTop;
+    }
+
+    private double GetDpiScale()
+    {
+        var handle = new System.Windows.Interop.WindowInteropHelper(this).Handle;
+        var dpi = handle == nint.Zero ? 96u : GetDpiForWindow(handle);
+        return Math.Max(1.0, dpi / 96.0);
     }
 
     private void EndDrag(object? sender, MouseButtonEventArgs e)
