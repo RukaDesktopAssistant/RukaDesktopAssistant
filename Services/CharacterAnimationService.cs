@@ -7,13 +7,13 @@ namespace RukaDesktopAssistant.Services;
 
 public sealed class CharacterAnimationService
 {
-    private readonly Path _normalMouth;
+    private readonly System.Windows.Shapes.Path _normalMouth;
     private readonly FrameworkElement _talkMouth;
     private readonly FrameworkElement _sleepFace;
     private readonly FrameworkElement _walkFace;
 
     public CharacterAnimationService(
-        Path normalMouth,
+        System.Windows.Shapes.Path normalMouth,
         FrameworkElement talkMouth,
         FrameworkElement sleepFace,
         FrameworkElement walkFace)
