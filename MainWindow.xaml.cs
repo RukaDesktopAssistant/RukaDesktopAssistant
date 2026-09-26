@@ -247,7 +247,7 @@ public partial class MainWindow : Window
             BeginAnimation(Window.LeftProperty, null);
             BeginAnimation(Window.TopProperty, null);
             _dragging = true;
-            Cursor = Cursors.SizeAll;
+            Cursor = System.Windows.Input.Cursors.SizeAll;
             DragMove();
         }
         catch (InvalidOperationException)
