@@ -2,8 +2,8 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     WindowStyle="None" AllowsTransparency="True" Background="Transparent"
-    ShowInTaskbar="False" Topmost="True" SizeToContent="WidthAndHeight"
-    ResizeMode="NoResize">
+    ShowInTaskbar="False" Topmost="True" Width="220" Height="260"
+    ResizeMode="NoResize" UseLayoutRounding="True" SnapsToDevicePixels="True">
     <Window.Resources>
         <Storyboard x:Key="IdleFloat">
             <DoubleAnimation Storyboard.TargetName="Character" Storyboard.TargetProperty="RenderTransform.(TranslateTransform.Y)"
@@ -15,31 +15,126 @@
             <DoubleAnimation Storyboard.TargetName="CharacterVisual" Storyboard.TargetProperty="RenderTransform.(ScaleTransform.ScaleY)"
                              From="1" To="1.035" Duration="0:0:0.22" AutoReverse="True" RepeatBehavior="2x"/>
         </Storyboard>
+        <LinearGradientBrush x:Key="HairBrush" StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Color="#FF7A55B7" Offset="0"/>
+            <GradientStop Color="#FF3B285F" Offset="1"/>
+        </LinearGradientBrush>
+        <LinearGradientBrush x:Key="HoodieBrush" StartPoint="0,0" EndPoint="0,1">
+            <GradientStop Color="#FFB9D8FF" Offset="0"/>
+            <GradientStop Color="#FF718BC9" Offset="1"/>
+        </LinearGradientBrush>
+        <DropShadowEffect x:Key="AvatarShadow" BlurRadius="14" ShadowDepth="4" Opacity="0.28"/>
     </Window.Resources>
+
     <Grid Background="Transparent" Margin="8">
         <Border x:Name="Bubble" Background="#EE20242B" CornerRadius="14" Padding="12,8"
-                HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,0,0,70" Visibility="Collapsed">
+                HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,0,0,78"
+                Visibility="Collapsed">
             <TextBlock x:Name="BubbleText" Foreground="White" TextWrapping="Wrap" MaxWidth="320"/>
         </Border>
-        <Border x:Name="Character" Width="180" Height="220" Background="#01FFFFFF"
-                MouseLeftButtonDown="Character_MouseLeftButtonDown" MouseRightButtonUp="Character_MouseRightButtonUp"
-                ToolTip="Ruka" RenderTransformOrigin="0.5,0.5">
+
+        <Border x:Name="Character" Width="204" Height="236" Background="#01FFFFFF"
+                MouseLeftButtonDown="Character_MouseLeftButtonDown"
+                MouseRightButtonUp="Character_MouseRightButtonUp"
+                ToolTip="るか" RenderTransformOrigin="0.5,0.5">
             <Border.RenderTransform><TranslateTransform/></Border.RenderTransform>
+
             <Grid x:Name="CharacterVisual" RenderTransformOrigin="0.5,0.5">
                 <Grid.RenderTransform><ScaleTransform/></Grid.RenderTransform>
-                <Image x:Name="CharacterImage" Width="180" Height="220" Stretch="Uniform"
-                       SnapsToDevicePixels="True" RenderOptions.BitmapScalingMode="HighQuality" Visibility="Collapsed"/>
-                <Canvas x:Name="CharacterFallback" Width="160" Height="205"
+
+                <Canvas x:Name="RukaAvatar" Width="190" Height="226"
                         HorizontalAlignment="Center" VerticalAlignment="Center">
-                    <Ellipse Width="122" Height="150" Canvas.Left="19" Canvas.Top="28" Fill="#FFFFCFE4"/>
-                    <Ellipse Width="114" Height="70" Canvas.Left="22" Canvas.Top="15" Fill="#FF573C73"/>
-                    <Ellipse Width="18" Height="24" Canvas.Left="52" Canvas.Top="91" Fill="#FF35253F"/>
-                    <Ellipse Width="18" Height="24" Canvas.Left="91" Canvas.Top="91" Fill="#FF35253F"/>
-                    <Ellipse Width="8" Height="10" Canvas.Left="58" Canvas.Top="97" Fill="White"/>
-                    <Ellipse Width="8" Height="10" Canvas.Left="95" Canvas.Top="97" Fill="White"/>
-                    <Border Width="66" Height="34" Canvas.Left="47" Canvas.Top="122" Background="#01FFFFFF"
-                            BorderBrush="#FFB75C87" BorderThickness="0,0,0,3" CornerRadius="0,0,30,30"/>
-                    <Rectangle Width="36" Height="48" Canvas.Left="62" Canvas.Top="166" RadiusX="12" RadiusY="12" Fill="#FFB7D8"/>
+
+                    <!-- Ground shadow -->
+                    <Ellipse Width="104" Height="18" Canvas.Left="43" Canvas.Top="202"
+                             Fill="#66000000"/>
+
+                    <!-- Body -->
+                    <Path Data="M 45,202 C 48,171 58,154 73,149 L 117,149 C 132,154 142,171 145,202 Z"
+                          Fill="{StaticResource HoodieBrush}" Effect="{StaticResource AvatarShadow}"/>
+                    <Path Data="M 72,151 L 95,169 L 118,151"
+                          Fill="#FFE8F1FF" Stroke="#FF566D9E" StrokeThickness="2"/>
+                    <Path Data="M 78,157 L 95,174 L 112,157 L 105,151 L 95,162 L 85,151 Z"
+                          Fill="#FF9D6CC5"/>
+
+                    <!-- Hair back -->
+                    <Path Data="M 52,92 C 48,55 65,28 95,27 C 126,28 143,54 138,94
+                                C 135,125 126,145 114,154 L 77,154 C 64,143 55,121 52,92 Z"
+                          Fill="{StaticResource HairBrush}"/>
+
+                    <!-- Face -->
+                    <Ellipse Width="78" Height="92" Canvas.Left="56" Canvas.Top="51"
+                             Fill="#FFFFD8C9" Stroke="#FFE8B8AE" StrokeThickness="1.5"/>
+
+                    <!-- Hair cap -->
+                    <Path Data="M 51,72 C 50,38 69,19 96,20 C 124,20 143,42 140,73
+                                C 130,62 120,57 108,55 C 95,52 78,55 65,65 Z"
+                          Fill="{StaticResource HairBrush}"/>
+
+                    <!-- Bangs -->
+                    <Path Data="M 56,60 C 64,39 78,31 95,32 C 114,31 130,42 136,61
+                                C 124,54 117,51 111,55 L 104,75 L 96,55 L 84,75 L 77,55 L 65,67 Z"
+                          Fill="#FF68498F"/>
+
+                    <!-- Side hair -->
+                    <Path Data="M 58,63 C 45,75 48,113 64,132 L 70,119 L 66,86 Z"
+                          Fill="#FF4A326F"/>
+                    <Path Data="M 133,63 C 145,76 142,113 126,132 L 120,119 L 124,86 Z"
+                          Fill="#FF4A326F"/>
+
+                    <!-- Hair clip -->
+                    <Path Data="M 128,48 L 135,40 L 143,48 L 135,56 Z"
+                          Fill="#FFFFD36B" Stroke="#FF8B5D3B" StrokeThickness="1.5"/>
+                    <Ellipse Width="4" Height="4" Canvas.Left="133" Canvas.Top="46" Fill="White"/>
+
+                    <!-- Brows -->
+                    <Line X1="72" Y1="83" X2="84" Y2="80" Stroke="#FF51354F" StrokeThickness="2" StrokeStartLineCap="Round"/>
+                    <Line X1="106" Y1="80" X2="118" Y2="83" Stroke="#FF51354F" StrokeThickness="2" StrokeStartLineCap="Round"/>
+
+                    <!-- Eyes -->
+                    <Ellipse Width="15" Height="20" Canvas.Left="71" Canvas.Top="86" Fill="#FF35253F"/>
+                    <Ellipse Width="15" Height="20" Canvas.Left="105" Canvas.Top="86" Fill="#FF35253F"/>
+                    <Ellipse Width="6" Height="8" Canvas.Left="74" Canvas.Top="88" Fill="White"/>
+                    <Ellipse Width="6" Height="8" Canvas.Left="108" Canvas.Top="88" Fill="White"/>
+                    <Ellipse Width="3" Height="4" Canvas.Left="80" Canvas.Top="98" Fill="#FFB77AE1"/>
+                    <Ellipse Width="3" Height="4" Canvas.Left="114" Canvas.Top="98" Fill="#FFB77AE1"/>
+
+                    <!-- Normal mouth -->
+                    <Path x:Name="NormalMouth" Data="M 89,119 Q 95,124 101,119"
+                          Stroke="#FFB75C87" StrokeThickness="2.5" Fill="Transparent"
+                          StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+
+                    <!-- Talk mouth -->
+                    <Ellipse x:Name="TalkMouth" Width="10" Height="7" Canvas.Left="90" Canvas.Top="117"
+                             Fill="#FF8B4D70" Visibility="Collapsed"/>
+
+                    <!-- Blush -->
+                    <Ellipse Width="13" Height="5" Canvas.Left="64" Canvas.Top="111" Fill="#55F08D9B"/>
+                    <Ellipse Width="13" Height="5" Canvas.Left="113" Canvas.Top="111" Fill="#55F08D9B"/>
+
+                    <!-- Sleep eyes / mouth overlay -->
+                    <Canvas x:Name="SleepFace" Visibility="Collapsed">
+                        <Path Data="M 71,95 Q 78,89 85,95" Stroke="#FF35253F" StrokeThickness="2.5" Fill="Transparent"/>
+                        <Path Data="M 105,95 Q 112,89 119,95" Stroke="#FF35253F" StrokeThickness="2.5" Fill="Transparent"/>
+                        <Ellipse Width="9" Height="6" Canvas.Left="91" Canvas.Top="118" Fill="#FF8B4D70"/>
+                        <TextBlock Text="Z" FontSize="17" FontWeight="Bold" Foreground="#FF7A55B7"
+                                   Canvas.Left="137" Canvas.Top="70"/>
+                        <TextBlock Text="z" FontSize="13" FontWeight="Bold" Foreground="#FF9D86C7"
+                                   Canvas.Left="150" Canvas.Top="56"/>
+                    </Canvas>
+
+                    <!-- Walk accents -->
+                    <Canvas x:Name="WalkFace" Visibility="Collapsed">
+                        <Line X1="42" Y1="168" X2="30" Y2="162" Stroke="#FF7A55B7" StrokeThickness="3" StrokeStartLineCap="Round"/>
+                        <Line X1="148" Y1="168" X2="160" Y2="162" Stroke="#FF7A55B7" StrokeThickness="3" StrokeStartLineCap="Round"/>
+                    </Canvas>
+
+                    <!-- Hoodie drawstrings -->
+                    <Line X1="83" Y1="160" X2="82" Y2="184" Stroke="#FFF2F6FF" StrokeThickness="2"/>
+                    <Line X1="107" Y1="160" X2="108" Y2="184" Stroke="#FFF2F6FF" StrokeThickness="2"/>
+                    <Ellipse Width="6" Height="6" Canvas.Left="79" Canvas.Top="181" Fill="#FF7A55B7"/>
+                    <Ellipse Width="6" Height="6" Canvas.Left="105" Canvas.Top="181" Fill="#FF7A55B7"/>
+
                 </Canvas>
             </Grid>
         </Border>
