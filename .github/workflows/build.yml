@@ -67,10 +67,10 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         shell: pwsh
         run: |
-          $tag = "v0.2.2"
+          $tag = "v0.3.0"
           gh release view $tag --repo $env:GITHUB_REPOSITORY 2>$null
           if ($LASTEXITCODE -ne 0) {
-            gh release create $tag RukaDesktopAssistant.exe RukaDesktopAssistant-win-x64.zip --repo $env:GITHUB_REPOSITORY --title "るか デスクトップアシスタント v0.2.2" --notes "Windows版るか デスクトップアシスタント v0.2.2。ドラッグ移動、表示、キャラクター動作を実機確認するための修正版です。"
+            gh release create $tag RukaDesktopAssistant.exe RukaDesktopAssistant-win-x64.zip --repo $env:GITHUB_REPOSITORY --title "るか デスクトップアシスタント v0.3.0" --notes "Windows版るか デスクトップアシスタント v0.3.0。ドラッグ移動、表示、キャラクター動作を実機確認するための修正版です。"
           } else {
             gh release upload $tag RukaDesktopAssistant.exe RukaDesktopAssistant-win-x64.zip --repo $env:GITHUB_REPOSITORY --clobber
           }
