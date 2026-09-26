@@ -1,35 +1,50 @@
-using System.Windows.Media.Imaging;
-using WpfImage = System.Windows.Controls.Image;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
 
 namespace RukaDesktopAssistant.Services;
 
 public sealed class CharacterAnimationService
 {
-    private readonly CharacterAssetService _assets;
-    private readonly WpfImage _image;
+    private readonly Path _normalMouth;
+    private readonly FrameworkElement _talkMouth;
+    private readonly FrameworkElement _sleepFace;
+    private readonly FrameworkElement _walkFace;
 
-    public CharacterAnimationService(CharacterAssetService assets, WpfImage image)
+    public CharacterAnimationService(
+        Path normalMouth,
+        FrameworkElement talkMouth,
+        FrameworkElement sleepFace,
+        FrameworkElement walkFace)
     {
-        _assets = assets;
-        _image = image;
+        _normalMouth = normalMouth;
+        _talkMouth = talkMouth;
+        _sleepFace = sleepFace;
+        _walkFace = walkFace;
     }
 
     public void SetState(string state)
     {
-        var filename = state switch
+        _normalMouth.Visibility = Visibility.Visible;
+        _talkMouth.Visibility = Visibility.Collapsed;
+        _sleepFace.Visibility = Visibility.Collapsed;
+        _walkFace.Visibility = Visibility.Collapsed;
+
+        switch (state)
         {
-            "talk" => "ruka-talk.png",
-            "sleep" => "ruka-sleep.png",
-            "walk" => "ruka-walk-1.png",
-            _ => "ruka-idle.png"
-        };
-        BitmapImage? image = _assets.TryLoad(filename);
-        if (image is null && filename != "ruka-idle.png")
-            image = _assets.TryLoad("ruka-idle.png");
-        if (image is not null)
-        {
-            _image.Source = image;
-            _image.Visibility = System.Windows.Visibility.Visible;
+            case "talk":
+                _normalMouth.Visibility = Visibility.Collapsed;
+                _talkMouth.Visibility = Visibility.Visible;
+                break;
+
+            case "sleep":
+                _normalMouth.Visibility = Visibility.Collapsed;
+                _sleepFace.Visibility = Visibility.Visible;
+                break;
+
+            case "walk":
+                _walkFace.Visibility = Visibility.Visible;
+                break;
         }
     }
 }
