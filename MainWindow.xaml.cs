@@ -27,7 +27,6 @@ public partial class MainWindow : Window
     private readonly MonitorProfileStore _monitorProfiles = new();
     private readonly GameProfileStore _gameProfiles = new();
     private readonly ShortcutService _shortcuts;
-    private readonly CharacterAssetService _assets = new();
     private CharacterAnimationService? _animation;
     private bool _dragging;
     private ChatWindow? _chatWindow;
@@ -102,18 +101,12 @@ public partial class MainWindow : Window
 
     private void LoadCharacterAsset()
     {
-        _animation = new CharacterAnimationService(_assets, CharacterImage);
+        _animation = new CharacterAnimationService(
+            NormalMouth,
+            TalkMouth,
+            SleepFace,
+            WalkFace);
         _animation.SetState("idle");
-        var image = _assets.TryLoad("ruka-idle.png");
-        if (image is null)
-        {
-            CharacterImage.Visibility = Visibility.Collapsed;
-            CharacterFallback.Visibility = Visibility.Visible;
-            return;
-        }
-        CharacterImage.Source = image;
-        CharacterImage.Visibility = Visibility.Visible;
-        CharacterFallback.Visibility = Visibility.Collapsed;
     }
 
     private void OnActivityChanged(string activity)
