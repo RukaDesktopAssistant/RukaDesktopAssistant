@@ -67,6 +67,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         shell: pwsh
         run: |
+          # v0.3.0の公開を確実に行うため、mainへのpushでこの公開処理を再実行する
           $tag = "v0.3.0"
           gh release view $tag --repo $env:GITHUB_REPOSITORY 2>$null
           if ($LASTEXITCODE -ne 0) {
