@@ -257,7 +257,7 @@ public partial class MainWindow : Window
         finally
         {
             _dragging = false;
-            Cursor = Cursors.Arrow;
+            Cursor = System.Windows.Input.Cursors.Arrow;
             SavePosition();
             e.Handled = true;
         }
